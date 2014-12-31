@@ -27,6 +27,7 @@
 #include <QtCore/QUrl>
 #include <QtGui/QGuiApplication>
 #include <QtGui/QIcon>
+#include <QtGui/QMouseEvent>
 #include <QtWidgets/QMenu>
 
 namespace Otter
@@ -34,12 +35,15 @@ namespace Otter
 
 WebWidget::WebWidget(bool isPrivate, WebBackend *backend, ContentsWidget *parent) : QWidget(parent),
 	m_backend(backend),
+	m_contextMenu(new QMenu(this)),
 	m_reloadTimeMenu(NULL),
 	m_quickSearchMenu(NULL),
 	m_reloadTime(-1),
 	m_reloadTimer(0)
 {
 	Q_UNUSED(isPrivate)
+
+	m_contextMenu->installEventFilter(this);
 
 	connect(SearchesManager::getInstance(), SIGNAL(searchEnginesModified()), this, SLOT(updateQuickSearch()));
 }
@@ -113,7 +117,7 @@ void WebWidget::reloadTimeMenuAboutToShow()
 	}
 }
 
-void WebWidget::quickSearch(QAction *action)
+void WebWidget::quickSearch(QAction *action, OpenHints hints)
 {
 	const QString engine = ((!action || action->data().type() != QVariant::String) ? getQuickSearchEngine() : action->data().toString());
 
@@ -131,7 +135,11 @@ void WebWidget::quickSearch(QAction *action)
 			emit quickSearchEngineChanged();
 		}
 
-		if (QGuiApplication::keyboardModifiers().testFlag(Qt::ControlModifier))
+		if (hints != DefaultOpen)
+		{
+			emit requestedSearch(getSelectedText(), m_quickSearchEngine, hints);
+		}
+		else if (QGuiApplication::keyboardModifiers().testFlag(Qt::ControlModifier))
 		{
 			emit requestedSearch(getSelectedText(), m_quickSearchEngine, NewTabBackgroundOpen);
 		}
@@ -163,6 +171,8 @@ void WebWidget::quickSearchMenuAboutToShow()
 				action->setToolTip(engine->description);
 			}
 		}
+
+		m_quickSearchMenu->installEventFilter(this);
 	}
 }
 
@@ -173,37 +183,37 @@ void WebWidget::clearOptions()
 
 void WebWidget::showContextMenu(const QPoint &position, MenuFlags flags)
 {
-	QMenu menu;
+	m_contextMenu->clear();
 
 	if (flags & StandardMenu)
 	{
-		menu.addAction(getAction(Action::GoBackAction));
-		menu.addAction(getAction(Action::GoForwardAction));
-		menu.addAction(getAction(Action::RewindAction));
-		menu.addAction(getAction(Action::FastForwardAction));
-		menu.addSeparator();
-		menu.addAction(getAction(Action::ReloadAction));
-		menu.addAction(getAction(Action::ScheduleReloadAction));
-		menu.addSeparator();
-		menu.addAction(getAction(Action::AddBookmarkAction));
-		menu.addAction(getAction(Action::CopyAddressAction));
-		menu.addAction(getAction(Action::PrintAction));
-		menu.addSeparator();
+		m_contextMenu->addAction(getAction(Action::GoBackAction));
+		m_contextMenu->addAction(getAction(Action::GoForwardAction));
+		m_contextMenu->addAction(getAction(Action::RewindAction));
+		m_contextMenu->addAction(getAction(Action::FastForwardAction));
+		m_contextMenu->addSeparator();
+		m_contextMenu->addAction(getAction(Action::ReloadAction));
+		m_contextMenu->addAction(getAction(Action::ScheduleReloadAction));
+		m_contextMenu->addSeparator();
+		m_contextMenu->addAction(getAction(Action::AddBookmarkAction));
+		m_contextMenu->addAction(getAction(Action::CopyAddressAction));
+		m_contextMenu->addAction(getAction(Action::PrintAction));
+		m_contextMenu->addSeparator();
 
 		if (flags & FormMenu)
 		{
-			menu.addAction(getAction(Action::CreateSearchAction));
-			menu.addSeparator();
+			m_contextMenu->addAction(getAction(Action::CreateSearchAction));
+			m_contextMenu->addSeparator();
 		}
 
-		menu.addAction(getAction(Action::InspectElementAction));
-		menu.addAction(getAction(Action::ViewSourceAction));
-		menu.addAction(getAction(Action::ValidateAction));
-		menu.addSeparator();
+		m_contextMenu->addAction(getAction(Action::InspectElementAction));
+		m_contextMenu->addAction(getAction(Action::ViewSourceAction));
+		m_contextMenu->addAction(getAction(Action::ValidateAction));
+		m_contextMenu->addSeparator();
 
 		if (flags & FrameMenu)
 		{
-			QMenu *frameMenu = new QMenu(&menu);
+			QMenu *frameMenu = new QMenu(m_contextMenu);
 			frameMenu->setTitle(tr("Frame"));
 			frameMenu->addAction(getAction(Action::OpenFrameInCurrentTabAction));
 			frameMenu->addAction(getAction(Action::OpenFrameInNewTabAction));
@@ -213,129 +223,129 @@ void WebWidget::showContextMenu(const QPoint &position, MenuFlags flags)
 			frameMenu->addAction(getAction(Action::ReloadFrameAction));
 			frameMenu->addAction(getAction(Action::CopyFrameLinkToClipboardAction));
 
-			menu.addMenu(frameMenu);
-			menu.addSeparator();
+			m_contextMenu->addMenu(frameMenu);
+			m_contextMenu->addSeparator();
 		}
 
-		menu.addAction(ActionsManager::getAction(Action::ContentBlockingAction, this));
-		menu.addAction(getAction(Action::WebsitePreferencesAction));
-		menu.addSeparator();
-		menu.addAction(ActionsManager::getAction(Action::FullScreenAction, this));
+		m_contextMenu->addAction(ActionsManager::getAction(Action::ContentBlockingAction, this));
+		m_contextMenu->addAction(getAction(Action::WebsitePreferencesAction));
+		m_contextMenu->addSeparator();
+		m_contextMenu->addAction(ActionsManager::getAction(Action::FullScreenAction, this));
 	}
 	else
 	{
 		if (flags & EditMenu)
 		{
-			menu.addAction(getAction(Action::UndoAction));
-			menu.addAction(getAction(Action::RedoAction));
-			menu.addSeparator();
-			menu.addAction(getAction(Action::CutAction));
-			menu.addAction(getAction(Action::CopyAction));
-			menu.addAction(getAction(Action::PasteAction));
-			menu.addAction(getAction(Action::DeleteAction));
-			menu.addSeparator();
-			menu.addAction(getAction(Action::SelectAllAction));
-			menu.addAction(getAction(Action::ClearAllAction));
-			menu.addSeparator();
+			m_contextMenu->addAction(getAction(Action::UndoAction));
+			m_contextMenu->addAction(getAction(Action::RedoAction));
+			m_contextMenu->addSeparator();
+			m_contextMenu->addAction(getAction(Action::CutAction));
+			m_contextMenu->addAction(getAction(Action::CopyAction));
+			m_contextMenu->addAction(getAction(Action::PasteAction));
+			m_contextMenu->addAction(getAction(Action::DeleteAction));
+			m_contextMenu->addSeparator();
+			m_contextMenu->addAction(getAction(Action::SelectAllAction));
+			m_contextMenu->addAction(getAction(Action::ClearAllAction));
+			m_contextMenu->addSeparator();
 
 			if (flags & FormMenu)
 			{
-				menu.addAction(getAction(Action::CreateSearchAction));
-				menu.addSeparator();
+				m_contextMenu->addAction(getAction(Action::CreateSearchAction));
+				m_contextMenu->addSeparator();
 			}
 
 			if (flags == EditMenu || flags == (EditMenu | FormMenu))
 			{
-				menu.addAction(getAction(Action::InspectElementAction));
-				menu.addSeparator();
+				m_contextMenu->addAction(getAction(Action::InspectElementAction));
+				m_contextMenu->addSeparator();
 			}
 
-			menu.addAction(getAction(Action::CheckSpellingAction));
-			menu.addSeparator();
+			m_contextMenu->addAction(getAction(Action::CheckSpellingAction));
+			m_contextMenu->addSeparator();
 		}
 
 		if (flags & SelectionMenu)
 		{
-			menu.addAction(getAction(Action::SearchAction));
-			menu.addAction(getAction(Action::SearchMenuAction));
-			menu.addSeparator();
+			m_contextMenu->addAction(getAction(Action::SearchAction));
+			m_contextMenu->addAction(getAction(Action::SearchMenuAction));
+			m_contextMenu->addSeparator();
 
 			if (!(flags & EditMenu))
 			{
-				menu.addAction(getAction(Action::CopyAction));
-				menu.addSeparator();
+				m_contextMenu->addAction(getAction(Action::CopyAction));
+				m_contextMenu->addSeparator();
 			}
 
-			menu.addAction(getAction(Action::OpenSelectionAsLinkAction));
-			menu.addSeparator();
+			m_contextMenu->addAction(getAction(Action::OpenSelectionAsLinkAction));
+			m_contextMenu->addSeparator();
 		}
 
 		if (flags & MailMenu)
 		{
-			menu.addAction(getAction(Action::OpenLinkInCurrentTabAction));
-			menu.addSeparator();
-			menu.addAction(getAction(Action::CopyLinkToClipboardAction));
+			m_contextMenu->addAction(getAction(Action::OpenLinkInCurrentTabAction));
+			m_contextMenu->addSeparator();
+			m_contextMenu->addAction(getAction(Action::CopyLinkToClipboardAction));
 
 			if (!(flags & ImageMenu))
 			{
-				menu.addAction(getAction(Action::InspectElementAction));
+				m_contextMenu->addAction(getAction(Action::InspectElementAction));
 			}
 
-			menu.addSeparator();
+			m_contextMenu->addSeparator();
 		}
 		else if (flags & LinkMenu)
 		{
-			menu.addAction(getAction(Action::OpenLinkAction));
-			menu.addAction(getAction(Action::OpenLinkInNewTabAction));
-			menu.addAction(getAction(Action::OpenLinkInNewTabBackgroundAction));
-			menu.addSeparator();
-			menu.addAction(getAction(Action::OpenLinkInNewWindowAction));
-			menu.addAction(getAction(Action::OpenLinkInNewWindowBackgroundAction));
-			menu.addSeparator();
-			menu.addAction(getAction(Action::BookmarkLinkAction));
-			menu.addAction(getAction(Action::CopyLinkToClipboardAction));
-			menu.addSeparator();
-			menu.addAction(getAction(Action::SaveLinkToDiskAction));
-			menu.addAction(getAction(Action::SaveLinkToDownloadsAction));
+			m_contextMenu->addAction(getAction(Action::OpenLinkAction));
+			m_contextMenu->addAction(getAction(Action::OpenLinkInNewTabAction));
+			m_contextMenu->addAction(getAction(Action::OpenLinkInNewTabBackgroundAction));
+			m_contextMenu->addSeparator();
+			m_contextMenu->addAction(getAction(Action::OpenLinkInNewWindowAction));
+			m_contextMenu->addAction(getAction(Action::OpenLinkInNewWindowBackgroundAction));
+			m_contextMenu->addSeparator();
+			m_contextMenu->addAction(getAction(Action::BookmarkLinkAction));
+			m_contextMenu->addAction(getAction(Action::CopyLinkToClipboardAction));
+			m_contextMenu->addSeparator();
+			m_contextMenu->addAction(getAction(Action::SaveLinkToDiskAction));
+			m_contextMenu->addAction(getAction(Action::SaveLinkToDownloadsAction));
 
 			if (!(flags & ImageMenu))
 			{
-				menu.addAction(getAction(Action::InspectElementAction));
+				m_contextMenu->addAction(getAction(Action::InspectElementAction));
 			}
 
-			menu.addSeparator();
+			m_contextMenu->addSeparator();
 		}
 
 		if (flags & ImageMenu)
 		{
-			menu.addAction(getAction(Action::OpenImageInNewTabAction));
-			menu.addAction(getAction(Action::ReloadImageAction));
-			menu.addAction(getAction(Action::CopyImageUrlToClipboardAction));
-			menu.addSeparator();
-			menu.addAction(getAction(Action::SaveImageToDiskAction));
-			menu.addAction(getAction(Action::CopyImageToClipboardAction));
-			menu.addSeparator();
-			menu.addAction(getAction(Action::InspectElementAction));
-			menu.addAction(getAction(Action::ImagePropertiesAction));
-			menu.addSeparator();
+			m_contextMenu->addAction(getAction(Action::OpenImageInNewTabAction));
+			m_contextMenu->addAction(getAction(Action::ReloadImageAction));
+			m_contextMenu->addAction(getAction(Action::CopyImageUrlToClipboardAction));
+			m_contextMenu->addSeparator();
+			m_contextMenu->addAction(getAction(Action::SaveImageToDiskAction));
+			m_contextMenu->addAction(getAction(Action::CopyImageToClipboardAction));
+			m_contextMenu->addSeparator();
+			m_contextMenu->addAction(getAction(Action::InspectElementAction));
+			m_contextMenu->addAction(getAction(Action::ImagePropertiesAction));
+			m_contextMenu->addSeparator();
 		}
 
 		if (flags & MediaMenu)
 		{
-			menu.addAction(getAction(Action::CopyMediaUrlToClipboardAction));
-			menu.addAction(getAction(Action::SaveMediaToDiskAction));
-			menu.addSeparator();
-			menu.addAction(getAction(Action::ToggleMediaPlayPauseAction));
-			menu.addAction(getAction(Action::ToggleMediaMuteAction));
-			menu.addAction(getAction(Action::ToggleMediaLoopAction));
-			menu.addAction(getAction(Action::ToggleMediaControlsAction));
-			menu.addSeparator();
-			menu.addAction(getAction(Action::InspectElementAction));
-			menu.addSeparator();
+			m_contextMenu->addAction(getAction(Action::CopyMediaUrlToClipboardAction));
+			m_contextMenu->addAction(getAction(Action::SaveMediaToDiskAction));
+			m_contextMenu->addSeparator();
+			m_contextMenu->addAction(getAction(Action::ToggleMediaPlayPauseAction));
+			m_contextMenu->addAction(getAction(Action::ToggleMediaMuteAction));
+			m_contextMenu->addAction(getAction(Action::ToggleMediaLoopAction));
+			m_contextMenu->addAction(getAction(Action::ToggleMediaControlsAction));
+			m_contextMenu->addSeparator();
+			m_contextMenu->addAction(getAction(Action::InspectElementAction));
+			m_contextMenu->addSeparator();
 		}
 	}
 
-	menu.exec(mapToGlobal(position));
+	m_contextMenu->exec(mapToGlobal(position));
 }
 
 void WebWidget::updateQuickSearch()
@@ -505,7 +515,6 @@ QMenu* WebWidget::getQuickSearchMenu()
 		m_quickSearchMenu = new QMenu(this);
 
 		connect(m_quickSearchMenu, SIGNAL(aboutToShow()), this, SLOT(quickSearchMenuAboutToShow()));
-		connect(m_quickSearchMenu, SIGNAL(triggered(QAction*)), this, SLOT(quickSearch(QAction*)));
 	}
 
 	return m_quickSearchMenu;
@@ -554,6 +563,43 @@ int WebWidget::getReloadTime() const
 bool WebWidget::hasOption(const QString &key) const
 {
 	return m_options.contains(key);
+}
+
+bool WebWidget::eventFilter(QObject *object, QEvent *event)
+{
+	if (event->type() == QEvent::MouseButtonRelease && (object == m_quickSearchMenu || object == m_contextMenu))
+	{
+		QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
+
+		if (mouseEvent && (mouseEvent->button() == Qt::LeftButton || mouseEvent->button() == Qt::MiddleButton))
+		{
+			QAction *action = (qobject_cast<QMenu*>(object))->actionAt(mouseEvent->pos());
+
+			if (object == m_contextMenu && action != getAction(Action::SearchAction))
+			{
+				return QWidget::eventFilter(object, event);
+			}
+
+			if (mouseEvent->button() == Qt::MiddleButton || mouseEvent->modifiers() & Qt::ControlModifier)
+			{
+				quickSearch(action, NewTabBackgroundOpen);
+			}
+			else if (mouseEvent->modifiers() & Qt::ShiftModifier || !SettingsManager::getValue(QLatin1String("Browser/ReuseCurrentTab")).toBool())
+			{
+				quickSearch(action, NewTabOpen);
+			}
+			else
+			{
+				quickSearch(action);
+			}
+
+			m_contextMenu->close();
+
+			return true;
+		}
+	}
+
+	return QWidget::eventFilter(object, event);
 }
 
 }

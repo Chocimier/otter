@@ -92,6 +92,7 @@ public:
 	virtual bool isLoading() const = 0;
 	virtual bool isPrivate() const = 0;
 	virtual bool find(const QString &text, FindFlags flags = HighlightAllFind) = 0;
+	bool eventFilter(QObject *object, QEvent *event);
 
 public slots:
 	virtual void clearOptions();
@@ -114,7 +115,7 @@ protected:
 
 protected slots:
 	void reloadTimeMenuAboutToShow();
-	void quickSearch(QAction *action);
+	void quickSearch(QAction *action, OpenHints hints = DefaultOpen);
 	void quickSearchMenuAboutToShow();
 	void updateQuickSearch();
 	void setReloadTime(QAction *action);
@@ -122,6 +123,7 @@ protected slots:
 
 private:
 	WebBackend *m_backend;
+	QMenu *m_contextMenu;
 	QMenu *m_reloadTimeMenu;
 	QMenu *m_quickSearchMenu;
 	QUrl m_requestedUrl;

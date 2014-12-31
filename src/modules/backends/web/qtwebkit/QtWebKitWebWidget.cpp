@@ -2131,7 +2131,7 @@ bool QtWebKitWebWidget::eventFilter(QObject *object, QEvent *event)
 		m_inspectorCloseButton->move(QPoint((m_inspector->width() - 19), 3));
 	}
 
-	return QObject::eventFilter(object, event);
+	return WebWidget::eventFilter(object, event);
 }
 
 }
