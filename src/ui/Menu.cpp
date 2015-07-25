@@ -94,12 +94,24 @@ Menu::Menu(MenuRole role, QWidget *parent) : QMenu(parent),
 
 			break;
 		case ImportExportMenuRole:
-			QMenu::addAction(tr("Import Opera Bookmarks…"))->setData(QLatin1String("OperaBookmarks"));
-			QMenu::addAction(tr("Import HTML Bookmarks…"))->setData(QLatin1String("HtmlBookmarks"));
-			QMenu::addSeparator();
-			QMenu::addAction(tr("Import Opera Notes…"))->setData(QLatin1String("OperaNotes"));
+			{
+				QMenu *submenu;
 
-			connect(this, SIGNAL(triggered(QAction*)), this, SLOT(openImporter(QAction*)));
+				submenu = new QMenu(tr("Import from Opera"), this);
+				submenu->addAction(tr("Full Profile…"))->setData(QLatin1String("OperaProfile"));
+				submenu->addSeparator();
+				submenu->addAction(tr("Bookmarks…"))->setData(QLatin1String("OperaBookmarks"));
+				submenu->addAction(tr("Notes…"))->setData(QLatin1String("OperaNotes"));
+
+				QMenu::addMenu(submenu);
+
+				submenu = new QMenu(tr("Import Other"), this);
+				submenu->addAction(tr("HTML Bookmarks…"))->setData(QLatin1String("HtmlBookmarks"));
+
+				QMenu::addMenu(submenu);
+
+				connect(this, SIGNAL(triggered(QAction*)), this, SLOT(openImporter(QAction*)));
+			}
 
 			break;
 		case SessionsMenuRole:

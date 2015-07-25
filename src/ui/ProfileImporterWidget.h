@@ -1,6 +1,5 @@
 /**************************************************************************
 * Otter Browser: Web browser controlled by the user, not vice-versa.
-* Copyright (C) 2013 - 2014 Michal Dutkiewicz aka Emdek <michal@emdek.pl>
 * Copyright (C) 2015 Piotr Wójcik <chocimier@tlen.pl>
 *
 * This program is free software: you can redistribute it and/or modify
@@ -18,18 +17,45 @@
 *
 **************************************************************************/
 
-#include "Importer.h"
+#ifndef OTTER_PROFILEIMPORTERWIDGET_H
+#define OTTER_PROFILEIMPORTERWIDGET_H
+
+#include "../core/ProfileImporter.h"
+
+#include <QtWidgets/QWidget>
 
 namespace Otter
 {
 
-Importer::Importer(QObject *parent) : QObject(parent)
+namespace Ui
 {
+	class ProfileImporterWidget;
 }
 
-bool Importer::onlyDirectories() const
+class ProfileImporterWidget : public QWidget
 {
-	return false;
-}
+	Q_OBJECT
+
+public:
+	explicit ProfileImporterWidget(ProfileImporter *importer, QWidget *parent = 0);
+	~ProfileImporterWidget();
+
+	bool selectedToImport(int index);
+
+public slots:
+	void stateChanged(int index, ProfileImporter::ImporterState state);
+
+protected:
+	void changeEvent(QEvent *e);
+
+protected slots:
+	void showOptionsDialog();
+
+private:
+	ProfileImporter *m_importer;
+	Ui::ProfileImporterWidget *m_ui;
+};
+
 
 }
+#endif

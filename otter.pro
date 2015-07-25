@@ -96,6 +96,7 @@ SOURCES += src/main.cpp \
     src/core/NotesManager.cpp \
     src/core/NotificationsManager.cpp \
     src/core/PlatformIntegration.cpp \
+    src/core/ProfileImporter.cpp \
     src/core/SearchesManager.cpp \
     src/core/SearchSuggester.cpp \
     src/core/SessionModel.cpp \
@@ -135,6 +136,7 @@ SOURCES += src/main.cpp \
     src/ui/OptionWidget.cpp \
     src/ui/PreferencesDialog.cpp \
     src/ui/PreviewWidget.cpp \
+    src/ui/ProfileImporterWidget.cpp \
     src/ui/ReloadTimeDialog.cpp \
     src/ui/SaveSessionDialog.cpp \
     src/ui/SearchDelegate.cpp \
@@ -238,6 +240,7 @@ HEADERS += src/core/ActionsManager.h \
     src/core/NotesManager.h \
     src/core/NotificationsManager.h \
     src/core/PlatformIntegration.h \
+    src/ui/ProfileImporter.h \
     src/core/SearchesManager.h \
     src/core/SearchSuggester.h \
     src/core/SessionModel.h \
@@ -277,6 +280,7 @@ HEADERS += src/core/ActionsManager.h \
     src/ui/OptionWidget.h \
     src/ui/PreferencesDialog.h \
     src/ui/PreviewWidget.h \
+    src/ui/ProfileImporterWidget.h \
     src/ui/ReloadTimeDialog.h \
     src/ui/SaveSessionDialog.h \
     src/ui/SearchDelegate.h \
@@ -366,6 +370,7 @@ FORMS += src/ui/AcceptCookieDialog.ui \
     src/ui/OpenAddressDialog.ui \
     src/ui/OpenBookmarkDialog.ui \
     src/ui/PreferencesDialog.ui \
+    src/ui/ProfileImporterWidget.ui \
     src/ui/ReloadTimeDialog.ui \
     src/ui/SaveSessionDialog.ui \
     src/ui/SearchPropertiesDialog.ui \

@@ -103,6 +103,7 @@ set(otter_src
 	src/core/NotesManager.cpp
 	src/core/NotificationsManager.cpp
 	src/core/PlatformIntegration.cpp
+	src/core/ProfileImporter.cpp
 	src/core/SearchesManager.cpp
 	src/core/SearchSuggester.cpp
 	src/core/SessionModel.cpp
@@ -142,6 +143,7 @@ set(otter_src
 	src/ui/OptionWidget.cpp
 	src/ui/PreferencesDialog.cpp
 	src/ui/PreviewWidget.cpp
+	src/ui/ProfileImporterWidget.cpp
 	src/ui/ReloadTimeDialog.cpp
 	src/ui/SaveSessionDialog.cpp
 	src/ui/SearchDelegate.cpp
@@ -238,6 +240,7 @@ qt5_wrap_ui(otter_ui
 	src/ui/OpenAddressDialog.ui
 	src/ui/OpenBookmarkDialog.ui
 	src/ui/PreferencesDialog.ui
+	src/ui/ProfileImporterWidget.ui
 	src/ui/ReloadTimeDialog.ui
 	src/ui/SaveSessionDialog.ui
 	src/ui/SearchPropertiesDialog.ui

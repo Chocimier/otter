@@ -18,6 +18,7 @@
 **************************************************************************/
 
 #include "ImportDialog.h"
+#include "../core/ProfileImporter.h"
 #include "../modules/importers/html/HtmlBookmarksImporter.h"
 #include "../modules/importers/opera/OperaBookmarksImporter.h"
 #include "../modules/importers/opera/OperaNotesImporter.h"
@@ -36,6 +37,7 @@ ImportDialog::ImportDialog(Importer *importer, QWidget *parent) : QDialog(parent
 	m_ui->setupUi(this);
 	m_ui->importPathWidget->setFilter(importer->getFileFilter());
 	m_ui->importPathWidget->setPath(importer->getSuggestedPath());
+	m_ui->importPathWidget->setSelectFile(!importer->onlyDirectories());
 
 	m_importer->setParent(this);
 
@@ -74,7 +76,11 @@ void ImportDialog::createDialog(const QString &importerName, QWidget *parent)
 {
 	Importer *importer = NULL;
 
-	if (importerName == QLatin1String("OperaBookmarks"))
+	if (importerName == QLatin1String("OperaProfile"))
+	{
+		importer = new ProfileImporter(QLatin1String("opera"));
+	}
+	else if (importerName == QLatin1String("OperaBookmarks"))
 	{
 		importer = new OperaBookmarksImporter();
 	}
