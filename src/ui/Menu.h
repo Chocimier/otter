@@ -52,6 +52,7 @@ public:
 
 	void load(const QString &path, const QStringList &options = QStringList());
 	void load(const QJsonObject &definition, const QStringList &options = QStringList());
+	static QStringList labelsWithAccessKeys(const QStringList &labels);
 	Action* addAction(int identifier, bool isGlobal = false);
 	MenuRole getRole() const;
 	static MenuRole getRole(const QString &identifier);
@@ -78,8 +79,12 @@ protected slots:
 	void selectUserAgent(QAction *action);
 	void updateClosedWindowsMenu();
 	void setToolBarVisibility(bool visible);
+	void makeAccessKeys();
+	void unmakeAccessKeys();
+	static QPair<QString, QChar> labelWithAccessKey(const QString &label, const QSet<QChar> &prohibited);
 
 private:
+	QStringList m_labels;
 	QActionGroup *m_actionGroup;
 	BookmarksItem *m_bookmark;
 	QString m_title;

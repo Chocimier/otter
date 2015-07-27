@@ -120,6 +120,9 @@ Menu::Menu(MenuRole role, QWidget *parent) : QMenu(parent),
 		default:
 			break;
 	}
+
+	connect(this, SIGNAL(aboutToShow()), this, SLOT(makeAccessKeys()));
+	connect(this, SIGNAL(aboutToHide()), this, SLOT(unmakeAccessKeys()));
 }
 
 void Menu::changeEvent(QEvent *event)
@@ -739,6 +742,73 @@ void Menu::setToolBarVisibility(bool visible)
 
 		ToolBarsManager::setToolBar(definition);
 	}
+}
+
+void Menu::makeAccessKeys()
+{
+	for (int i = 0; i < actions().count(); ++i)
+	{
+		m_labels.append(actions()[i]->text());
+	}
+
+	QStringList newLabels = labelsWithAccessKeys(m_labels);
+
+	for (int i = 0; i < actions().count(); ++i)
+	{
+		if (!actions()[i]->isSeparator())
+		{
+			actions()[i]->setText(newLabels[i]);
+		}
+	}
+}
+
+void Menu::unmakeAccessKeys()
+{
+	for (int i = 0; i < actions().count(); ++i)
+	{
+		if (!actions()[i]->isSeparator())
+		{
+			actions()[i]->setText(m_labels[i]);
+		}
+	}
+
+	m_labels.clear();
+}
+
+QStringList Menu::labelsWithAccessKeys(const QStringList &labels)
+{
+	QSet<QChar> used;
+	QStringList result;
+
+	for (int i = 0; i < labels.count(); ++i)
+	{
+		QPair<QString, QChar> withKey = labelWithAccessKey(labels[i], used);
+
+		result.append(withKey.first);
+		used.insert(withKey.second);
+	}
+
+	return result;
+}
+
+QPair<QString, QChar> Menu::labelWithAccessKey(const QString &label, const QSet<QChar> &prohibited)
+{
+	QPair<QString, QChar> result;
+	result.first = label;
+
+	for (int i = 0; i < label.count(); ++i)
+	{
+		if (!prohibited.contains(label[i].toLower()))
+		{
+			result.first.insert(i, QLatin1Char('&'));
+
+			result.second = label[i].toLower();
+
+			break;
+		}
+	}
+
+	return result;
 }
 
 Action* Menu::addAction(int identifier, bool isGlobal)
