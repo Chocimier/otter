@@ -794,21 +794,49 @@ QStringList Menu::labelsWithAccessKeys(const QStringList &labels)
 QPair<QString, QChar> Menu::labelWithAccessKey(const QString &label, const QSet<QChar> &prohibited)
 {
 	QPair<QString, QChar> result;
+	QStringList words = label.split(QLatin1Char(' '));
+	bool again = true;
+
 	result.first = label;
 
-	for (int i = 0; i < label.count(); ++i)
+	for (int letterIndex = 0; again; ++letterIndex)
 	{
-		if (!prohibited.contains(label[i].toLower()))
+		again = false;
+
+		for (int wordIndex = 0; wordIndex < words.length(); ++wordIndex)
 		{
-			result.first.insert(i, QLatin1Char('&'));
+			if (letterIndex < words[wordIndex].count())
+			{
+				again = true;
+			}
+			else
+			{
+				continue;
+			}
 
-			result.second = label[i].toLower();
+			if (!prohibited.contains(words[wordIndex][letterIndex].toLower()))
+			{
+				int position = 0;
 
-			break;
+				for (int i = 0; i < wordIndex; ++i)
+				{
+					position += words[i].count() + 1;
+				}
+
+				position += letterIndex;
+
+				result.first.insert(position, QLatin1Char('&'));
+
+				result.second = words[wordIndex][letterIndex].toLower();
+				again = false;
+
+				break;
+			}
 		}
 	}
 
 	return result;
+
 }
 
 Action* Menu::addAction(int identifier, bool isGlobal)
