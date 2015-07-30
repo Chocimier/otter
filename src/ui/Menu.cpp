@@ -238,6 +238,13 @@ void Menu::load(const QJsonObject &definition, const QStringList &options)
 				continue;
 			}
 
+			if (object.value(QLatin1String("type")).toString() == QLatin1String("action"))
+			{
+				addAction(object);
+
+				continue;
+			}
+
 			Menu *menu = new Menu(Menu::getRole(object.value(QLatin1String("identifier")).toString()), this);
 			menu->load(object, options);
 
@@ -255,30 +262,7 @@ void Menu::load(const QJsonObject &definition, const QStringList &options)
 		}
 		else
 		{
-			const QString rawAction = actions.at(i).toString();
-
-			if (rawAction == QLatin1String("separator"))
-			{
-				addSeparator();
-			}
-			else
-			{
-				const int action = ActionsManager::getActionIdentifier(rawAction);
-
-				if (action >= 0)
-				{
-					WindowsManager *manager = SessionsManager::getWindowsManager();
-
-					if (manager && Action::isLocal(action) && manager->getAction(action))
-					{
-						QMenu::addAction(manager->getAction(action));
-					}
-					else
-					{
-						QMenu::addAction(ActionsManager::getAction(action, parentWidget()));
-					}
-				}
-			}
+			QWidget::addAction(createAction(actions.at(i).toString()));
 		}
 	}
 }
@@ -775,6 +759,37 @@ void Menu::unmakeAccessKeys()
 	m_labels.clear();
 }
 
+Action* Menu::createAction(const QString &rawAction)
+{
+	Action *result = NULL;
+
+	if (rawAction == QLatin1String("separator"))
+	{
+		result = new Action(ActionsManager::OtherAction, this);
+		result->setSeparator(true);
+
+		return result;
+	}
+
+	const int action = ActionsManager::getActionIdentifier(rawAction);
+
+	if (action >= 0)
+	{
+		WindowsManager *manager = SessionsManager::getWindowsManager();
+
+		if (manager && Action::isLocal(action) && manager->getAction(action))
+		{
+			result = manager->getAction(action);
+		}
+		else
+		{
+			result = ActionsManager::getAction(action, parentWidget());
+		}
+	}
+
+	return result;
+}
+
 QStringList Menu::labelsWithAccessKeys(const QStringList &labels)
 {
 	QSet<QChar> used;
@@ -842,6 +857,20 @@ QPair<QString, QChar> Menu::labelWithAccessKey(const QString &label, const QSet<
 Action* Menu::addAction(int identifier, bool isGlobal)
 {
 	Action *action = (isGlobal ? ActionsManager::getAction(identifier, this) : new Action(identifier, this));
+
+	QMenu::addAction(action);
+
+	return action;
+}
+
+Action *Menu::addAction(const QJsonObject &definition)
+{
+	Action *action = createAction(definition.value(QLatin1String("action")).toString());
+
+	if (definition.contains(QLatin1String("title")))
+	{
+		action->setOverrideText(definition.value(QLatin1String("title")).toString());
+	}
 
 	QMenu::addAction(action);
 

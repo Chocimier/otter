@@ -54,6 +54,7 @@ public:
 	void load(const QJsonObject &definition, const QStringList &options = QStringList());
 	static QStringList labelsWithAccessKeys(const QStringList &labels);
 	Action* addAction(int identifier, bool isGlobal = false);
+	Action* addAction(const QJsonObject &definition);
 	MenuRole getRole() const;
 	static MenuRole getRole(const QString &identifier);
 
@@ -61,6 +62,7 @@ protected:
 	void changeEvent(QEvent *event);
 	void mouseReleaseEvent(QMouseEvent *event);
 	void contextMenuEvent(QContextMenuEvent *event);
+	Action *createAction(const QString &rawAction);
 
 protected slots:
 	void populateModelMenu();
