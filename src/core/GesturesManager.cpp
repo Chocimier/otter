@@ -1,7 +1,7 @@
 /**************************************************************************
 * Otter Browser: Web browser controlled by the user, not vice-versa.
 * Copyright (C) 2013 - 2015 Michal Dutkiewicz aka Emdek <michal@emdek.pl>
-* Copyright (C) 2015 Piotr Wójcik <chocimier@tlen.pl>
+* Copyright (C) 2015 - 2016 Piotr Wójcik <chocimier@tlen.pl>
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -215,6 +215,10 @@ void GesturesManager::loadProfiles()
 			if (contexts.at(j) == QLatin1String("Generic"))
 			{
 				context = GenericGesturesContext;
+			}
+			else if (contexts.at(j) == QLatin1String("WebPage"))
+			{
+				context = WebPageGesturesContext;
 			}
 			else if (contexts.at(j) == QLatin1String("Link"))
 			{

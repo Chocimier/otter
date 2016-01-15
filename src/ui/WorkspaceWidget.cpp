@@ -1,6 +1,7 @@
 /**************************************************************************
 * Otter Browser: Web browser controlled by the user, not vice-versa.
 * Copyright (C) 2013 - 2015 Michal Dutkiewicz aka Emdek <michal@emdek.pl>
+* Copyright (C) 2016 Piotr Wójcik <chocimier@tlen.pl>
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -20,6 +21,7 @@
 #include "WorkspaceWidget.h"
 #include "MainWindow.h"
 #include "Window.h"
+#include "../core/GesturesManager.h"
 #include "../core/SettingsManager.h"
 #include "../core/WindowsManager.h"
 
@@ -35,20 +37,40 @@ MdiWidget::MdiWidget(QWidget *parent) : QMdiArea(parent)
 {
 }
 
-void MdiWidget::contextMenuEvent(QContextMenuEvent *event)
-{
-	QMenu menu(this);
-	menu.addAction(ActionsManager::getAction(ActionsManager::RestoreAllAction, this));
-	menu.addAction(ActionsManager::getAction(ActionsManager::MaximizeAllAction, this));
-	menu.addAction(ActionsManager::getAction(ActionsManager::MinimizeAllAction, this));
-	menu.addSeparator();
-	menu.addAction(ActionsManager::getAction(ActionsManager::CascadeAllAction, this));
-	menu.addAction(ActionsManager::getAction(ActionsManager::TileAllAction, this));
-	menu.exec(event->globalPos());
-}
-
 bool MdiWidget::eventFilter(QObject *object, QEvent *event)
 {
+	if (object == this)
+	{
+		if (event->type() == QEvent::ContextMenu)
+		{
+			QContextMenuEvent *contextMenuEvent = static_cast<QContextMenuEvent*>(event);
+
+			if (!contextMenuEvent || contextMenuEvent->reason() == QContextMenuEvent::Mouse)
+			{
+				event->accept();
+
+				return true;
+			}
+
+			QMenu menu(this);
+			menu.addAction(ActionsManager::getAction(ActionsManager::RestoreAllAction, this));
+			menu.addAction(ActionsManager::getAction(ActionsManager::MaximizeAllAction, this));
+			menu.addAction(ActionsManager::getAction(ActionsManager::MinimizeAllAction, this));
+			menu.addSeparator();
+			menu.addAction(ActionsManager::getAction(ActionsManager::CascadeAllAction, this));
+			menu.addAction(ActionsManager::getAction(ActionsManager::TileAllAction, this));
+			menu.exec(contextMenuEvent->globalPos());
+
+			event->accept();
+
+			return true;
+		}
+		else if ((event->type() == QEvent::MouseButtonPress || event->type() == QEvent::MouseButtonDblClick || event->type() == QEvent::Wheel) && (GesturesManager::startGesture(object, event)))
+		{
+			return true;
+		}
+	}
+
 	if (event->type() == QEvent::KeyPress || event->type() == QEvent::KeyRelease)
 	{
 		 return QAbstractScrollArea::eventFilter(object, event);
