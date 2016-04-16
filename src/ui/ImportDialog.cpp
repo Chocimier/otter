@@ -23,6 +23,7 @@
 #include "../modules/importers/opera/OperaBookmarksImporter.h"
 #include "../modules/importers/opera/OperaNotesImporter.h"
 #include "../modules/importers/opera/OperaSessionImporter.h"
+#include "../modules/importers/opera/OperaStartPageImporter.h"
 
 #include "ui_ImportDialog.h"
 
@@ -84,6 +85,10 @@ void ImportDialog::createDialog(const QString &importerName, QWidget *parent)
 	else if (importerName == QLatin1String("OperaSession"))
 	{
 		importer = new OperaSessionImporter();
+	}
+	else if (importerName == QLatin1String("OperaStartPage"))
+	{
+		importer = new OperaStartPageImporter();
 	}
 	else if (importerName == QLatin1String("HtmlBookmarks"))
 	{

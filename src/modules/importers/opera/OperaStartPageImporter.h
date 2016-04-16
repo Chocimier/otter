@@ -1,6 +1,7 @@
 /**************************************************************************
 * Otter Browser: Web browser controlled by the user, not vice-versa.
-* Copyright (C) 2013 - 2016 Michal Dutkiewicz aka Emdek <michal@emdek.pl>
+* Copyright (C) 2014 - 2016 Piotr Wójcik <chocimier@tlen.pl>
+* Copyright (C) 2014 - 2016 Michal Dutkiewicz aka Emdek <michal@emdek.pl>
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -17,50 +18,43 @@
 *
 **************************************************************************/
 
-#ifndef OTTER_IMPORTER_H
-#define OTTER_IMPORTER_H
+#ifndef OTTER_OPERASTARTPAGEIMPORTER_H
+#define OTTER_OPERASTARTPAGEIMPORTER_H
 
-#include "AddonsManager.h"
+#include "../../../core/BookmarksModel.h"
+#include "../../../core/Importer.h"
+
+#include <QtWidgets/QCheckBox>
 
 namespace Otter
 {
 
-enum ImportType
-{
-	OtherImport = 0,
-	FullImport = 1,
-	BookmarksImport = 2,
-	SettingsImport = 4,
-	PasswordsImport = 8,
-	SearchEnginesImport = 16,
-	SessionsImport = 32,
-	CookiesImport = 64,
-	HistoryImport = 128,
-	FeedsImport = 256,
-	MailImport = 512,
-	NotesImport = 1024,
-	StartPageImport = 2048
-};
-
-class Importer : public Addon
+class OperaStartPageImporter : public Importer
 {
 	Q_OBJECT
 
 public:
-	explicit Importer(QObject *parent = NULL);
+	explicit OperaStartPageImporter(QObject *parent = NULL);
+	~OperaStartPageImporter();
 
-	virtual QWidget* getOptionsWidget() = 0;
-	virtual QString getFileFilter() const = 0;
-	virtual QString getSuggestedPath(const QString &path = QString()) const = 0;
-	virtual QString getBrowser() const = 0;
-	QUrl getUpdateUrl() const;
-	virtual ImportType getType() const = 0;
+	QWidget* getOptionsWidget();
+	QString getTitle() const;
+	QString getDescription() const;
+	QString getVersion() const;
+	QString getFileFilter() const;
+	QString getSuggestedPath(const QString &path = QString()) const;
+	QString getBrowser() const;
+	QUrl getHomePage() const;
+	QIcon getIcon() const;
+	ImportType getType() const;
 
 public slots:
-	virtual bool import(const QString &path) = 0;
+	bool import(const QString &path);
 
-signals:
-	void importProgress(int amount, int total, ImportType type);
+private:
+	QCheckBox *m_removeCheckBox;
+	QCheckBox *m_backgroundCheckBox;
+	QWidget *m_optionsWidget;
 };
 
 }
