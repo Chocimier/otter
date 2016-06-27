@@ -62,23 +62,29 @@ class ItemViewWidget : public QTreeView
 public:
 	enum ViewMode
 	{
-		ListViewMode = 0,
-		TreeViewMode = 1
+		ListViewMode = 1,
+		TreeViewMode = 2,
+		OneLevelViewMode = 4,
+		OnlyFoldersViewMode = 8
 	};
+
+	Q_DECLARE_FLAGS(ViewModes, ViewMode)
 
 	explicit ItemViewWidget(QWidget *parent = nullptr);
 
 	void setData(const QModelIndex &index, const QVariant &value, int role);
 	void setModel(QAbstractItemModel *model);
 	void setModel(QAbstractItemModel *model, bool useSortProxy);
-	void setViewMode(ViewMode mode);
+	void setViewMode(Otter::ItemViewWidget::ViewModes mode);
+	void setKeyboardNavigation(bool keyboardNavigation);
 	QStandardItemModel* getSourceModel();
 	QSortFilterProxyModel* getProxyModel();
 	QStandardItem* getItem(const QModelIndex &index) const;
 	QStandardItem* getItem(int row, int column = 0, const QModelIndex &parent = QModelIndex()) const;
 	QModelIndex getIndex(int row, int column = 0, const QModelIndex &parent = QModelIndex()) const;
+	QModelIndex currentIndex() const;
 	QSize sizeHint() const;
-	ViewMode getViewMode() const;
+	ViewModes getViewMode() const;
 	Qt::SortOrder getSortOrder() const;
 	int getSortColumn() const;
 	int getCurrentRow() const;
@@ -88,7 +94,9 @@ public:
 	bool canMoveDown() const;
 	bool isModified() const;
 
+
 public slots:
+	void displayFolder(const QModelIndex &index);
 	void insertRow(const QList<QStandardItem*> &items = QList<QStandardItem*>());
 	void insertRow(QStandardItem *item);
 	void removeRow();
@@ -101,8 +109,8 @@ public slots:
 
 protected:
 	void showEvent(QShowEvent *event);
-	void keyPressEvent(QKeyEvent *event);
 	void dropEvent(QDropEvent *event);
+	void keyPressEvent(QKeyEvent *event);
 	void startDrag(Qt::DropActions supportedActions);
 	void moveRow(bool up);
 	bool applyFilter(const QModelIndex &index);
@@ -110,10 +118,12 @@ protected:
 protected slots:
 	void optionChanged(int identifier, const QVariant &value);
 	void currentChanged(const QModelIndex &current, const QModelIndex &previous);
+	void loadState();
 	void saveState();
 	void notifySelectionChanged();
 	void updateDropSelection();
 	void updateFilter();
+	void updateBranch(QModelIndex index = QModelIndex());
 
 private:
 	HeaderViewWidget *m_headerWidget;
@@ -122,11 +132,12 @@ private:
 	QString m_filterString;
 	QSet<QModelIndex> m_expandedBranches;
 	QSet<int> m_filterRoles;
-	ViewMode m_viewMode;
+	ViewModes m_viewMode;
 	Qt::SortOrder m_sortOrder;
 	int m_sortColumn;
 	int m_dragRow;
 	int m_dropRow;
+	bool m_keyboardNavigation;
 	bool m_canGatherExpanded;
 	bool m_isModified;
 	bool m_isInitialized;

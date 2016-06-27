@@ -24,35 +24,40 @@
     <number>0</number>
    </property>
    <item>
-    <widget class="QLineEdit" name="filterLineEdit">
-     <property name="placeholderText">
-      <string>Search…</string>
-     </property>
-     <property name="clearButtonEnabled">
-      <bool>true</bool>
-     </property>
-    </widget>
+    <layout class="QHBoxLayout" name="headerLayout">
+     <item>
+      <widget class="QLineEdit" name="filterLineEdit">
+       <property name="placeholderText">
+        <string>Search…</string>
+       </property>
+       <property name="clearButtonEnabled">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QToolButton" name="modeMenuButton">
+       <property name="text">
+        <string>...</string>
+       </property>
+       <property name="popupMode">
+        <enum>QToolButton::InstantPopup</enum>
+       </property>
+       <property name="toolButtonStyle">
+        <enum>Qt::ToolButtonFollowStyle</enum>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
    <item>
-    <widget class="Otter::ItemViewWidget" name="bookmarksViewWidget">
+    <widget class="Otter::DualViewWidget" name="bookmarksDualViewWidget" native="true">
      <property name="contextMenuPolicy">
       <enum>Qt::CustomContextMenu</enum>
      </property>
-     <property name="editTriggers">
-      <set>QAbstractItemView::NoEditTriggers</set>
-     </property>
-     <property name="dragEnabled">
+     <property name="dragEnabled" stdset="0">
       <bool>true</bool>
      </property>
-     <property name="dragDropMode">
-      <enum>QAbstractItemView::DragDrop</enum>
-     </property>
-     <property name="defaultDropAction">
-      <enum>Qt::CopyAction</enum>
-     </property>
-     <attribute name="headerDefaultSectionSize">
-      <number>250</number>
-     </attribute>
     </widget>
    </item>
    <item>
@@ -179,14 +184,12 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>Otter::ItemViewWidget</class>
-   <extends>QTreeView</extends>
-   <header>src/ui/ItemViewWidget.h</header>
+   <class>Otter::DualViewWidget</class>
+   <extends>QWidget</extends>
+   <header>src/ui/DualViewWidget.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>
-  <tabstop>filterLineEdit</tabstop>
-  <tabstop>bookmarksViewWidget</tabstop>
   <tabstop>propertiesButton</tabstop>
   <tabstop>deleteButton</tabstop>
   <tabstop>addButton</tabstop>

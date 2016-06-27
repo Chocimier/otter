@@ -65,9 +65,11 @@ protected slots:
 	void removeBookmark();
 	void restoreBookmark();
 	void openBookmark(const QModelIndex &index = QModelIndex());
+	void openBookmark(const QModelIndex &index, QEvent *event);
 	void bookmarkProperties();
-	void showContextMenu(const QPoint &point);
+	void showContextMenu(const QModelIndex &point);
 	void updateActions();
+	void setViewMode(QAction* action);
 
 private:
 	QHash<int, Action*> m_actions;

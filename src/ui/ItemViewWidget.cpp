@@ -201,6 +201,7 @@ ItemViewWidget::ItemViewWidget(QWidget *parent) : QTreeView(parent),
 	m_sortColumn(-1),
 	m_dragRow(-1),
 	m_dropRow(-1),
+	m_keyboardNavigation(false),
 	m_canGatherExpanded(false),
 	m_isModified(false),
 	m_isInitialized(false)
@@ -218,6 +219,7 @@ ItemViewWidget::ItemViewWidget(QWidget *parent) : QTreeView(parent),
 	viewport()->setAcceptDrops(true);
 
 	connect(SettingsManager::getInstance(), SIGNAL(valueChanged(int,QVariant)), this, SLOT(optionChanged(int,QVariant)));
+	connect(this, SIGNAL(objectNameChanged(QString)), this, SLOT(loadState()));
 	connect(this, SIGNAL(sortChanged(int,Qt::SortOrder)), m_headerWidget, SLOT(setSort(int,Qt::SortOrder)));
 	connect(m_headerWidget, SIGNAL(sortChanged(int,Qt::SortOrder)), this, SLOT(setSort(int,Qt::SortOrder)));
 	connect(m_headerWidget, SIGNAL(columnVisibilityChanged(int,bool)), this, SLOT(setColumnVisibility(int,bool)));
@@ -286,65 +288,65 @@ void ItemViewWidget::showEvent(QShowEvent *event)
 	QTreeView::showEvent(event);
 }
 
-void ItemViewWidget::keyPressEvent(QKeyEvent *event)
-{
-	const int rowCount(getRowCount());
+//void ItemViewWidget::keyPressEvent(QKeyEvent *event)
+//{
+//	const int rowCount(getRowCount());
 
-	if ((event->key() == Qt::Key_Down || event->key() == Qt::Key_Up) && rowCount > 1 && moveCursor(((event->key() == Qt::Key_Up) ? MoveUp : MoveDown), event->modifiers()) == currentIndex())
-	{
-		QModelIndex newIndex;
+//	if ((event->key() == Qt::Key_Down || event->key() == Qt::Key_Up) && rowCount > 1 && moveCursor(((event->key() == Qt::Key_Up) ? MoveUp : MoveDown), event->modifiers()) == currentIndex())
+//	{
+//		QModelIndex newIndex;
 
-		if (event->key() == Qt::Key_Down)
-		{
-			for (int i = 0; i < rowCount; ++i)
-			{
-				const QModelIndex index(getIndex(i, 0));
+//		if (event->key() == Qt::Key_Down)
+//		{
+//			for (int i = 0; i < rowCount; ++i)
+//			{
+//				const QModelIndex index(getIndex(i, 0));
 
-				if (index.flags().testFlag(Qt::ItemIsSelectable))
-				{
-					newIndex = index;
+//				if (index.flags().testFlag(Qt::ItemIsSelectable))
+//				{
+//					newIndex = index;
 
-					break;
-				}
-			}
-		}
-		else
-		{
-			for (int i = (rowCount - 1); i >= 0; --i)
-			{
-				const QModelIndex index(getIndex(i, 0));
+//					break;
+//				}
+//			}
+//		}
+//		else
+//		{
+//			for (int i = (rowCount - 1); i >= 0; --i)
+//			{
+//				const QModelIndex index(getIndex(i, 0));
 
-				if (index.flags().testFlag(Qt::ItemIsSelectable))
-				{
-					newIndex = index;
+//				if (index.flags().testFlag(Qt::ItemIsSelectable))
+//				{
+//					newIndex = index;
 
-					break;
-				}
-			}
-		}
+//					break;
+//				}
+//			}
+//		}
 
-		if (newIndex.isValid())
-		{
-			QItemSelectionModel::SelectionFlags command(selectionCommand(newIndex, event));
+//		if (newIndex.isValid())
+//		{
+//			QItemSelectionModel::SelectionFlags command(selectionCommand(newIndex, event));
 
-			if (command != QItemSelectionModel::NoUpdate || style()->styleHint(QStyle::SH_ItemView_MovementWithoutUpdatingSelection, 0, this))
-			{
-				if (event->key() == Qt::Key_Down)
-				{
-					scrollTo(getIndex(0, 0));
-				}
+//			if (command != QItemSelectionModel::NoUpdate || style()->styleHint(QStyle::SH_ItemView_MovementWithoutUpdatingSelection, 0, this))
+//			{
+//				if (event->key() == Qt::Key_Down)
+//				{
+//					scrollTo(getIndex(0, 0));
+//				}
 
-				selectionModel()->setCurrentIndex(newIndex, command);
-			}
+//				selectionModel()->setCurrentIndex(newIndex, command);
+//			}
 
-			event->accept();
+//			event->accept();
 
-			return;
-		}
-	}
+//			return;
+//		}
+//	}
 
-	QTreeView::keyPressEvent(event);
-}
+//	QTreeView::keyPressEvent(event);
+//}
 
 void ItemViewWidget::dropEvent(QDropEvent *event)
 {
@@ -383,6 +385,43 @@ void ItemViewWidget::dropEvent(QDropEvent *event)
 	emit modified();
 
 	QTimer::singleShot(50, this, SLOT(updateDropSelection()));
+}
+
+void ItemViewWidget::keyPressEvent(QKeyEvent *event)
+{
+	if (m_keyboardNavigation)
+	{
+		if (event->key() == Qt::Key_Left && m_viewMode.testFlag(OneLevelViewMode))
+		{
+			const QModelIndex parent(rootIndex());
+
+			displayFolder(parent.parent());
+			setCurrentIndex(parent);
+
+			event->accept();
+
+			return;
+		}
+		else if (event->key() == Qt::Key_Right && m_viewMode.testFlag(OneLevelViewMode))
+		{
+			if (currentIndex().flags().testFlag(Qt::ItemNeverHasChildren))
+			{
+				emit activated(currentIndex());
+			}
+			else
+			{
+				displayFolder(currentIndex());
+
+			}
+			event->accept();
+
+			return;
+		}
+	}
+
+	event->ignore();
+
+	QTreeView::keyPressEvent(event);
 }
 
 void ItemViewWidget::startDrag(Qt::DropActions supportedActions)
@@ -435,6 +474,19 @@ void ItemViewWidget::moveRow(bool up)
 
 		emit modified();
 	}
+}
+
+void ItemViewWidget::displayFolder(const QModelIndex &index)
+{
+	if (m_proxyModel)
+	{
+		setRootIndex(m_proxyModel->mapFromSource(index));
+	}
+	else
+	{
+		setRootIndex(index);
+	}
+	setCurrentIndex(rootIndex().child(0, 0));
 }
 
 void ItemViewWidget::insertRow(const QList<QStandardItem*> &items)
@@ -519,6 +571,55 @@ void ItemViewWidget::moveUpRow()
 void ItemViewWidget::moveDownRow()
 {
 	moveRow(false);
+}
+
+void ItemViewWidget::loadState()
+{
+	if (!model())
+	{
+		return;
+	}
+
+	const QString suffix(QLatin1String("ViewWidget"));
+	const QString type(objectName().endsWith(suffix) ? objectName().left(objectName().size() - suffix.size()) : objectName());
+
+	if (type.isEmpty())
+	{
+		return;
+	}
+
+	Settings settings(SessionsManager::getReadableDataPath(QLatin1String("views.ini")));
+	settings.beginGroup(type);
+
+	setSort(settings.getValue(QLatin1String("sortColumn"), -1).toInt(), ((settings.getValue(QLatin1String("sortOrder"), QLatin1String("ascending")).toString() == QLatin1String("ascending")) ? Qt::AscendingOrder : Qt::DescendingOrder));
+
+	const QStringList columns(settings.getValue(QLatin1String("columns")).toString().split(QLatin1Char(','), QString::SkipEmptyParts));
+
+	if (!columns.isEmpty())
+	{
+		for (int i = 0; i < model()->columnCount(); ++i)
+		{
+			setColumnHidden(i, true);
+		}
+
+		disconnect(m_headerWidget, SIGNAL(sectionMoved(int,int,int)), this, SLOT(saveState()));
+
+		for (int i = 0; i < columns.count(); ++i)
+		{
+			setColumnHidden(columns[i].toInt(), false);
+
+			if (m_headerWidget)
+			{
+				m_headerWidget->moveSection(m_headerWidget->visualIndex(columns[i].toInt()), i);
+			}
+		}
+
+		connect(m_headerWidget, SIGNAL(sectionMoved(int,int,int)), this, SLOT(saveState()));
+	}
+
+	m_headerWidget->setStretchLastSection(true);
+
+	m_isInitialized = true;
 }
 
 void ItemViewWidget::saveState()
@@ -701,15 +802,26 @@ void ItemViewWidget::setModel(QAbstractItemModel *model, bool useSortProxy)
 		connect(m_sourceModel, SIGNAL(itemChanged(QStandardItem*)), this, SLOT(notifySelectionChanged()));
 	}
 
+	loadState();
+	updateBranch();
+
 	connect(selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)), this, SLOT(notifySelectionChanged()));
 	connect(model, SIGNAL(dataChanged(QModelIndex,QModelIndex)), this, SIGNAL(modified()));
+	connect(model, SIGNAL(dataChanged(QModelIndex,QModelIndex)), this, SLOT(updateBranch()));
 }
 
-void ItemViewWidget::setViewMode(ItemViewWidget::ViewMode mode)
+void ItemViewWidget::setViewMode(ItemViewWidget::ViewModes mode)
 {
 	m_viewMode = mode;
 
-	setIndentation((mode == TreeViewMode) ? m_treeIndentation : 0);
+	setIndentation(mode.testFlag(TreeViewMode) ? m_treeIndentation : 0);
+	setExpandsOnDoubleClick(!mode.testFlag(OneLevelViewMode));
+	updateBranch();
+}
+
+void ItemViewWidget::setKeyboardNavigation(bool keyboardNavigation)
+{
+	m_keyboardNavigation = keyboardNavigation;
 }
 
 QStandardItemModel* ItemViewWidget::getSourceModel()
@@ -737,6 +849,11 @@ QModelIndex ItemViewWidget::getIndex(int row, int column, const QModelIndex &par
 	return (model() ? model()->index(row, column, parent) : QModelIndex());
 }
 
+QModelIndex ItemViewWidget::currentIndex() const
+{
+	return (m_proxyModel ? m_proxyModel->mapToSource(QTreeView::currentIndex()) : QTreeView::currentIndex());
+}
+
 QSize ItemViewWidget::sizeHint() const
 {
 	const QSize size(QTreeView::sizeHint());
@@ -749,7 +866,7 @@ QSize ItemViewWidget::sizeHint() const
 	return size;
 }
 
-ItemViewWidget::ViewMode ItemViewWidget::getViewMode() const
+ItemViewWidget::ViewModes ItemViewWidget::getViewMode() const
 {
 	return m_viewMode;
 }
@@ -771,12 +888,12 @@ int ItemViewWidget::getCurrentRow() const
 
 int ItemViewWidget::getRowCount(const QModelIndex &parent) const
 {
-	return (model() ? model()->rowCount(parent) : 0);
+	return (model() ? model()->rowCount() : 0);
 }
 
 int ItemViewWidget::getColumnCount(const QModelIndex &parent) const
 {
-	return (model() ? model()->columnCount(parent) : 0);
+	return (model() ? model()->columnCount() : 0);
 }
 
 bool ItemViewWidget::canMoveUp() const
@@ -808,7 +925,7 @@ bool ItemViewWidget::applyFilter(const QModelIndex &index)
 
 		for (int i = 0; i < rowCount; ++i)
 		{
-			if (applyFilter(index.child(i, 0)))
+			if (index.child(i, 0) != index && applyFilter(index.child(i, 0)))
 			{
 				hasFound = true;
 			}
@@ -854,6 +971,28 @@ bool ItemViewWidget::applyFilter(const QModelIndex &index)
 	}
 
 	return hasFound;
+}
+
+void ItemViewWidget::updateBranch(QModelIndex index)
+{
+	if (!index.isValid() && model())
+	{
+		index = model()->index(0,0);
+	}
+
+	bool hideLeaves(m_viewMode.testFlag(OnlyFoldersViewMode));
+
+	for (int i = 0; index.child(i, 0).isValid(); ++i)
+	{
+		if (index.child(i, 0).flags().testFlag(Qt::ItemNeverHasChildren))
+		{
+			setRowHidden(i, index, hideLeaves);
+		}
+		else
+		{
+			updateBranch(index.child(i, 0));
+		}
+	}
 }
 
 bool ItemViewWidget::isModified() const

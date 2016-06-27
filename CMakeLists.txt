@@ -157,6 +157,7 @@ set(otter_src
 	src/ui/ContentsDialog.cpp
 	src/ui/ContentsWidget.cpp
 	src/ui/Dialog.cpp
+	src/ui/DualViewWidget.cpp
 	src/ui/FilePathWidget.cpp
 	src/ui/IconWidget.cpp
 	src/ui/ImagePropertiesDialog.cpp
