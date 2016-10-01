@@ -18,6 +18,9 @@ add_definitions(-DOTTER_VERSION_MAIN="${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_
 add_definitions(-DOTTER_VERSION_WEEKLY=" ")
 add_definitions(-DOTTER_VERSION_CONTEXT="-dev")
 add_definitions(-DOTTER_INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}")
+add_definitions(-DLTC_SOURCE -DLTC_NO_PROTOTYPES)
+
+include_directories(3rdparty/libtomcrypt/headers)
 
 if (EXISTS "${CMAKE_ROOT}/Modules/CPack.cmake")
 	include(InstallRequiredSystemLibraries)
@@ -106,6 +109,8 @@ set(otter_src
 	src/core/ContentBlockingProfile.cpp
 	src/core/Console.cpp
 	src/core/CookieJar.cpp
+	src/core/CustomDevice.cpp
+	src/core/EncryptionDevice.cpp
 	src/core/FileSystemCompleterModel.cpp
 	src/core/GesturesManager.cpp
 	src/core/HandlersManager.cpp
@@ -260,6 +265,41 @@ set(otter_src
 	src/modules/windows/web/StartPageWidget.cpp
 	src/modules/windows/web/TileDelegate.cpp
 	src/modules/windows/web/WebContentsWidget.cpp
+	3rdparty/libtomcrypt/ciphers/aes/aes.c
+	3rdparty/libtomcrypt/ciphers/aes/aes_tab.c
+	3rdparty/libtomcrypt/hashes/helper/hash_memory.c
+	3rdparty/libtomcrypt/hashes/sha2/sha256.c
+	3rdparty/libtomcrypt/mac/hmac/hmac_done.c
+	3rdparty/libtomcrypt/mac/hmac/hmac_init.c
+	3rdparty/libtomcrypt/mac/hmac/hmac_memory.c
+	3rdparty/libtomcrypt/mac/hmac/hmac_process.c
+	3rdparty/libtomcrypt/mac/hmac/hmac_test.c
+	3rdparty/libtomcrypt/misc/crypt/crypt_argchk.c
+	3rdparty/libtomcrypt/misc/crypt/crypt_cipher_descriptor.c
+	3rdparty/libtomcrypt/misc/crypt/crypt_cipher_is_valid.c
+	3rdparty/libtomcrypt/misc/crypt/crypt_find_cipher.c
+	3rdparty/libtomcrypt/misc/crypt/crypt_find_hash.c
+	3rdparty/libtomcrypt/misc/crypt/crypt_find_prng.c
+	3rdparty/libtomcrypt/misc/crypt/crypt_hash_descriptor.c
+	3rdparty/libtomcrypt/misc/crypt/crypt_hash_is_valid.c
+	3rdparty/libtomcrypt/misc/crypt/crypt_prng_descriptor.c
+	3rdparty/libtomcrypt/misc/crypt/crypt_prng_is_valid.c
+	3rdparty/libtomcrypt/misc/crypt/crypt_register_cipher.c
+	3rdparty/libtomcrypt/misc/crypt/crypt_register_hash.c
+	3rdparty/libtomcrypt/misc/crypt/crypt_register_prng.c
+	3rdparty/libtomcrypt/misc/pkcs5/pkcs_5_2.c
+	3rdparty/libtomcrypt/misc/zeromem.c
+	3rdparty/libtomcrypt/modes/ctr/ctr_decrypt.c
+	3rdparty/libtomcrypt/modes/ctr/ctr_done.c
+	3rdparty/libtomcrypt/modes/ctr/ctr_encrypt.c
+	3rdparty/libtomcrypt/modes/ctr/ctr_getiv.c
+	3rdparty/libtomcrypt/modes/ctr/ctr_setiv.c
+	3rdparty/libtomcrypt/modes/ctr/ctr_start.c
+	3rdparty/libtomcrypt/modes/ctr/ctr_test.c
+	3rdparty/libtomcrypt/prngs/fortuna.c
+	3rdparty/libtomcrypt/prngs/rng_get_bytes.c
+	3rdparty/libtomcrypt/prngs/rng_make_prng.c
+	3rdparty/libtomcrypt/prngs/sprng.c
 	3rdparty/mousegestures/MouseGestures.cpp
 )
 
@@ -451,6 +491,8 @@ if (WIN32)
 	find_package(Qt5WinExtras 5.3.0 QUIET)
 
 	if (MSVC)
+		add_definitions(-DLTC_NO_FAST)
+
 		set(CMAKE_PREFIX_PATH $ENV{QTDIR})
 		set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MP")
 		set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MP /GL")

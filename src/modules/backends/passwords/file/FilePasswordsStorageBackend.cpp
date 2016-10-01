@@ -19,6 +19,8 @@
 
 #include "FilePasswordsStorageBackend.h"
 #include "../../../../core/Console.h"
+#include "../../../../core/CustomDevice.h"
+#include "../../../../core/EncryptionDevice.h"
 #include "../../../../core/SessionsManager.h"
 
 #include <QtCore/QFile>
@@ -38,11 +40,13 @@ void FilePasswordsStorageBackend::initialize()
 {
 	m_isInitialized = true;
 
-	QFile file(SessionsManager::getWritableDataPath(QLatin1String("passwords.json")));
+	QFile storeFile(SessionsManager::getWritableDataPath(QLatin1String("passwords.json")));
+	CustomDevice file(&storeFile, QList<CustomDevice::Feature>{CustomDevice::Feature::Encryption}, this);
+	dynamic_cast<EncryptionDevice*>(file.getChainDevice(0))->setKey(QByteArray("password"));
 
-	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+	if (!file.open(QIODevice::ReadOnly))
 	{
-		Console::addMessage(tr("Failed to open passwords file: %1").arg(file.errorString()), Console::OtherCategory, Console::ErrorLevel, file.fileName());
+		Console::addMessage(tr("Failed to open passwords file: %1").arg(file.errorString()), Console::OtherCategory, Console::ErrorLevel, storeFile.fileName());
 
 		return;
 	}
@@ -91,11 +95,13 @@ void FilePasswordsStorageBackend::initialize()
 
 void FilePasswordsStorageBackend::save()
 {
-	QFile file(SessionsManager::getWritableDataPath(QLatin1String("passwords.json")));
+	QFile storeFile(SessionsManager::getWritableDataPath(QLatin1String("passwords.json")));
+	CustomDevice file(&storeFile, QList<CustomDevice::Feature>{CustomDevice::Feature::Encryption}, this);
+	dynamic_cast<EncryptionDevice*>(file.getChainDevice(0))->setKey(QByteArray("password"));
 
-	if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+	if (!file.open(QIODevice::WriteOnly))
 	{
-		Console::addMessage(tr("Failed to save passwords file: %1").arg(file.errorString()), Console::OtherCategory, Console::ErrorLevel, file.fileName());
+		Console::addMessage(tr("Failed to save passwords file: %1").arg(file.errorString()), Console::OtherCategory, Console::ErrorLevel, storeFile.fileName());
 
 		return;
 	}
