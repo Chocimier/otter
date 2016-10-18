@@ -19,7 +19,6 @@
 
 #include "FilePasswordsStorageBackend.h"
 #include "../../../../core/Console.h"
-#include "../../../../core/CustomDevice.h"
 #include "../../../../core/EncryptionDevice.h"
 #include "../../../../core/SessionsManager.h"
 
@@ -41,8 +40,8 @@ void FilePasswordsStorageBackend::initialize()
 	m_isInitialized = true;
 
 	QFile storeFile(SessionsManager::getWritableDataPath(QLatin1String("passwords.json")));
-	CustomDevice file(&storeFile, QList<CustomDevice::Feature>{CustomDevice::Feature::Encryption}, this);
-	dynamic_cast<EncryptionDevice*>(file.getChainDevice(0))->setKey(QByteArray("password"));
+	EncryptionDevice file(&storeFile, this);
+	file.setKey(QByteArray("password"));
 
 	if (!file.open(QIODevice::ReadOnly))
 	{
@@ -96,8 +95,8 @@ void FilePasswordsStorageBackend::initialize()
 void FilePasswordsStorageBackend::save()
 {
 	QFile storeFile(SessionsManager::getWritableDataPath(QLatin1String("passwords.json")));
-	CustomDevice file(&storeFile, QList<CustomDevice::Feature>{CustomDevice::Feature::Encryption}, this);
-	dynamic_cast<EncryptionDevice*>(file.getChainDevice(0))->setKey(QByteArray("password"));
+	EncryptionDevice file(&storeFile, this);
+	file.setKey(QByteArray("password"));
 
 	if (!file.open(QIODevice::WriteOnly))
 	{

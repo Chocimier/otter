@@ -109,7 +109,6 @@ set(otter_src
 	src/core/ContentBlockingProfile.cpp
 	src/core/Console.cpp
 	src/core/CookieJar.cpp
-	src/core/CustomDevice.cpp
 	src/core/EncryptionDevice.cpp
 	src/core/FileSystemCompleterModel.cpp
 	src/core/GesturesManager.cpp
