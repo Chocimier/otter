@@ -31,13 +31,21 @@ DualViewWidget::DualViewWidget(QWidget *parent) : QWidget(parent),
 	m_treeView(nullptr),
 	m_listView(nullptr),
 	m_model(nullptr),
-	m_type(SplitViewType)
+	m_type(SplitViewType),
+	m_dragDropMode(QAbstractItemView::NoDragDrop)
 {
 	setLayout(new QBoxLayout(QBoxLayout::LeftToRight, this));
 	setViewType(m_type);
 
 	connect(Application::getInstance(), SIGNAL(focusChanged(QWidget*,QWidget*)), this, SLOT(widgetFocused(QWidget*,QWidget*)));
 	connect(this, SIGNAL(objectNameChanged(QString)), this, SLOT(updateWidgets()));
+}
+
+void DualViewWidget::setDragDropMode(QAbstractItemView::DragDropMode mode)
+{
+	m_dragDropMode = mode;
+
+	updateWidgets();
 }
 
 void DualViewWidget::setExpanded(const QModelIndex &index, bool expanded)
@@ -194,6 +202,7 @@ void DualViewWidget::updateWidgets()
 		m_treeView->setObjectName(prefix + ((m_type == TreeViewType) ? QString() : QLatin1String("FolderTree")) + QLatin1String("ViewWidget"));
 		m_treeView->setModel(m_model, true);
 		m_treeView->setFilterRoles(m_filterRoles);
+		m_treeView->setDragDropMode(m_dragDropMode);
 	}
 
 	if (m_listView)
@@ -201,6 +210,7 @@ void DualViewWidget::updateWidgets()
 		m_listView->setObjectName(prefix + ((m_type == SplitViewType) ? QLatin1String("CurrentFolder") : QLatin1String("OneFolder")) + QLatin1String("ViewWidget"));
 		m_listView->setModel(m_model, true);
 		m_listView->setFilterRoles(m_filterRoles);
+		m_listView->setDragDropMode(m_dragDropMode);
 	}
 }
 

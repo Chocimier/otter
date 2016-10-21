@@ -46,6 +46,7 @@ public:
 
 
 public slots:
+	void setDragDropMode(QAbstractItemView::DragDropMode behavior);
 	void setExpanded(const QModelIndex &index, bool expanded);
 	void setFilterRoles(const QSet<int> &roles);
 	void setFilterString(const QString string);
@@ -66,6 +67,7 @@ private:
 	ItemViewWidget *m_listView;
 	QAbstractItemModel *m_model;
 	ViewType m_type;
+	QAbstractItemView::DragDropMode m_dragDropMode;
 
 signals:
 	void needsActionsUpdate();

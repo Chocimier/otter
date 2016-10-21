@@ -52,6 +52,7 @@ BookmarksContentsWidget::BookmarksContentsWidget(Window *window) : ContentsWidge
 	m_ui->bookmarksDualViewWidget->setModel(model);
 	m_ui->bookmarksDualViewWidget->setExpanded(model->index(0, 0), true);
 	m_ui->bookmarksDualViewWidget->setFilterRoles(QSet<int>({BookmarksModel::UrlRole, BookmarksModel::TitleRole, BookmarksModel::DescriptionRole, BookmarksModel::KeywordRole}));
+	m_ui->bookmarksDualViewWidget->setDragDropMode(QAbstractItemView::DragDrop);
 	m_ui->filterLineEdit->installEventFilter(this);
 
 	QAction *treeModeAction(new QAction(tr("Tree Mode"), this));
