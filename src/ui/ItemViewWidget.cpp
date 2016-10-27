@@ -196,6 +196,7 @@ ItemViewWidget::ItemViewWidget(QWidget *parent) : QTreeView(parent),
 	m_headerWidget(new HeaderViewWidget(Qt::Horizontal, this)),
 	m_sourceModel(nullptr),
 	m_proxyModel(nullptr),
+	m_viewFlags(ViewFlag::None),
 	m_viewMode(ListViewMode),
 	m_sortOrder(Qt::AscendingOrder),
 	m_sortColumn(-1),
@@ -391,7 +392,7 @@ void ItemViewWidget::keyPressEvent(QKeyEvent *event)
 {
 	if (m_keyboardNavigation)
 	{
-		if (event->key() == Qt::Key_Left && m_viewMode.testFlag(OneLevelViewMode))
+		if (event->key() == Qt::Key_Left && m_viewFlags.testFlag(ViewFlag::OneLevel))
 		{
 			const QModelIndex parent(rootIndex());
 
@@ -402,7 +403,7 @@ void ItemViewWidget::keyPressEvent(QKeyEvent *event)
 
 			return;
 		}
-		else if (event->key() == Qt::Key_Right && m_viewMode.testFlag(OneLevelViewMode))
+		else if (event->key() == Qt::Key_Right && m_viewFlags.testFlag(ViewFlag::OneLevel))
 		{
 			if (currentIndex().flags().testFlag(Qt::ItemNeverHasChildren))
 			{
@@ -810,12 +811,19 @@ void ItemViewWidget::setModel(QAbstractItemModel *model, bool useSortProxy)
 	connect(model, SIGNAL(dataChanged(QModelIndex,QModelIndex)), this, SLOT(updateBranch()));
 }
 
-void ItemViewWidget::setViewMode(ItemViewWidget::ViewModes mode)
+
+void ItemViewWidget::setViewMode(ItemViewWidget::ViewMode mode)
 {
 	m_viewMode = mode;
 
-	setIndentation(mode.testFlag(TreeViewMode) ? m_treeIndentation : 0);
-	setExpandsOnDoubleClick(!mode.testFlag(OneLevelViewMode));
+	setIndentation(mode == TreeViewMode ? m_treeIndentation : 0);
+	updateBranch();
+}
+void ItemViewWidget::setViewFlags(ItemViewWidget::ViewFlags flags)
+{
+	m_viewFlags = flags;
+
+	setExpandsOnDoubleClick(!flags.testFlag(ViewFlag::OneLevel));
 	updateBranch();
 }
 
@@ -866,11 +874,6 @@ QSize ItemViewWidget::sizeHint() const
 	return size;
 }
 
-ItemViewWidget::ViewModes ItemViewWidget::getViewMode() const
-{
-	return m_viewMode;
-}
-
 Qt::SortOrder ItemViewWidget::getSortOrder() const
 {
 	return m_sortOrder;
@@ -888,11 +891,15 @@ int ItemViewWidget::getCurrentRow() const
 
 int ItemViewWidget::getRowCount(const QModelIndex &parent) const
 {
+	Q_UNUSED(parent)
+
 	return (model() ? model()->rowCount() : 0);
 }
 
 int ItemViewWidget::getColumnCount(const QModelIndex &parent) const
 {
+	Q_UNUSED(parent)
+
 	return (model() ? model()->columnCount() : 0);
 }
 
@@ -980,7 +987,7 @@ void ItemViewWidget::updateBranch(QModelIndex index)
 		index = model()->index(0,0);
 	}
 
-	bool hideLeaves(m_viewMode.testFlag(OnlyFoldersViewMode));
+	bool hideLeaves(m_viewFlags.testFlag(ViewFlag::OnlyFolders));
 
 	for (int i = 0; index.child(i, 0).isValid(); ++i)
 	{

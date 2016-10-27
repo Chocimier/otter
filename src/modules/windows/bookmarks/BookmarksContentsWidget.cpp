@@ -342,7 +342,7 @@ void BookmarksContentsWidget::setViewMode(QAction *action)
 {
 	if (action)
 	{
-		m_ui->bookmarksDualViewWidget->setViewType((DualViewWidget::ViewType)action->data().toInt());
+		m_ui->bookmarksDualViewWidget->setViewType(static_cast<DualViewWidget::ViewType>(action->data().toInt()));
 	}
 }
 

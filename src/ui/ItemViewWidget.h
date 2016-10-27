@@ -62,20 +62,25 @@ class ItemViewWidget : public QTreeView
 public:
 	enum ViewMode
 	{
-		ListViewMode = 1,
-		TreeViewMode = 2,
-		OneLevelViewMode = 4,
-		OnlyFoldersViewMode = 8
+		ListViewMode = 0,
+		TreeViewMode = 1,
 	};
 
-	Q_DECLARE_FLAGS(ViewModes, ViewMode)
+	enum class ViewFlag : unsigned char {
+		None = 0,
+		OneLevel = 1,
+		OnlyFolders = 2
+	};
+
+	Q_DECLARE_FLAGS(ViewFlags, ViewFlag)
 
 	explicit ItemViewWidget(QWidget *parent = nullptr);
 
 	void setData(const QModelIndex &index, const QVariant &value, int role);
 	void setModel(QAbstractItemModel *model);
 	void setModel(QAbstractItemModel *model, bool useSortProxy);
-	void setViewMode(Otter::ItemViewWidget::ViewModes mode);
+	void setViewFlags(Otter::ItemViewWidget::ViewFlags flags);
+	void setViewMode(Otter::ItemViewWidget::ViewMode mode);
 	void setKeyboardNavigation(bool keyboardNavigation);
 	QStandardItemModel* getSourceModel();
 	QSortFilterProxyModel* getProxyModel();
@@ -84,7 +89,6 @@ public:
 	QModelIndex getIndex(int row, int column = 0, const QModelIndex &parent = QModelIndex()) const;
 	QModelIndex currentIndex() const;
 	QSize sizeHint() const;
-	ViewModes getViewMode() const;
 	Qt::SortOrder getSortOrder() const;
 	int getSortColumn() const;
 	int getCurrentRow() const;
@@ -132,7 +136,8 @@ private:
 	QString m_filterString;
 	QSet<QModelIndex> m_expandedBranches;
 	QSet<int> m_filterRoles;
-	ViewModes m_viewMode;
+	ViewFlags m_viewFlags;
+	ViewMode m_viewMode;
 	Qt::SortOrder m_sortOrder;
 	int m_sortColumn;
 	int m_dragRow;

@@ -71,7 +71,8 @@ void DualViewWidget::setFilterString(const QString string)
 
 		if (m_type == SplitViewType)
 		{
-			m_treeView->setViewMode(ItemViewWidget::ViewModes(ItemViewWidget::TreeViewMode) | ItemViewWidget::OnlyFoldersViewMode);
+			m_treeView->setViewMode(ItemViewWidget::TreeViewMode);
+			m_treeView->setViewFlags(ItemViewWidget::ViewFlag::OnlyFolders);
 		}
 	}
 
@@ -105,27 +106,29 @@ void DualViewWidget::setViewType(DualViewWidget::ViewType type)
 		m_listView = nullptr;
 	}
 
-
 	switch (type)
 	{
 		case TreeViewType:
 			m_treeView = new ItemViewWidget(this);
-			m_treeView->setViewMode(ItemViewWidget::ViewModes(ItemViewWidget::TreeViewMode));
+			m_treeView->setViewMode(ItemViewWidget::TreeViewMode);
 
 			break;
 		case SplitViewType:
 			m_treeView = new ItemViewWidget(this);
-			m_treeView->setViewMode(ItemViewWidget::ViewModes(ItemViewWidget::TreeViewMode) | ItemViewWidget::OnlyFoldersViewMode);
+			m_treeView->setViewMode(ItemViewWidget::TreeViewMode);
+			m_treeView->setViewFlags(ItemViewWidget::ViewFlag::OnlyFolders);
 
 			m_listView = new ItemViewWidget(this);
-			m_listView->setViewMode(ItemViewWidget::ViewModes(ItemViewWidget::ListViewMode) | ItemViewWidget::OneLevelViewMode);
+			m_listView->setViewMode(ItemViewWidget::ListViewMode);
+			m_listView->setViewFlags(ItemViewWidget::ViewFlag::OneLevel);
 
 			connect(m_treeView, SIGNAL(needsActionsUpdate()), this, SLOT(treeIndexChanged()));
 
 			break;
 		case OneFolderViewType:
 			m_listView = new ItemViewWidget(this);
-			m_listView->setViewMode(ItemViewWidget::ViewModes(ItemViewWidget::ListViewMode) | ItemViewWidget::OneLevelViewMode);
+			m_listView->setViewMode(ItemViewWidget::ListViewMode);
+			m_listView->setViewFlags(ItemViewWidget::ViewFlag::OneLevel);
 
 			break;
 	}
