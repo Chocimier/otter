@@ -289,65 +289,94 @@ void ItemViewWidget::showEvent(QShowEvent *event)
 	QTreeView::showEvent(event);
 }
 
-//void ItemViewWidget::keyPressEvent(QKeyEvent *event)
-//{
-//	const int rowCount(getRowCount());
+void ItemViewWidget::keyPressEvent(QKeyEvent *event)
+{
+	const int rowCount(getRowCount());
 
-//	if ((event->key() == Qt::Key_Down || event->key() == Qt::Key_Up) && rowCount > 1 && moveCursor(((event->key() == Qt::Key_Up) ? MoveUp : MoveDown), event->modifiers()) == currentIndex())
-//	{
-//		QModelIndex newIndex;
+	if ((event->key() == Qt::Key_Down || event->key() == Qt::Key_Up) && rowCount > 1 && moveCursor(((event->key() == Qt::Key_Up) ? MoveUp : MoveDown), event->modifiers()) == currentIndex())
+	{
+		QModelIndex newIndex;
 
-//		if (event->key() == Qt::Key_Down)
-//		{
-//			for (int i = 0; i < rowCount; ++i)
-//			{
-//				const QModelIndex index(getIndex(i, 0));
+		if (event->key() == Qt::Key_Down)
+		{
+			for (int i = 0; i < rowCount; ++i)
+			{
+				const QModelIndex index(getIndex(i, 0));
 
-//				if (index.flags().testFlag(Qt::ItemIsSelectable))
-//				{
-//					newIndex = index;
+				if (index.flags().testFlag(Qt::ItemIsSelectable))
+				{
+					newIndex = index;
 
-//					break;
-//				}
-//			}
-//		}
-//		else
-//		{
-//			for (int i = (rowCount - 1); i >= 0; --i)
-//			{
-//				const QModelIndex index(getIndex(i, 0));
+					break;
+				}
+			}
+		}
+		else
+		{
+			for (int i = (rowCount - 1); i >= 0; --i)
+			{
+				const QModelIndex index(getIndex(i, 0));
 
-//				if (index.flags().testFlag(Qt::ItemIsSelectable))
-//				{
-//					newIndex = index;
+				if (index.flags().testFlag(Qt::ItemIsSelectable))
+				{
+					newIndex = index;
 
-//					break;
-//				}
-//			}
-//		}
+					break;
+				}
+			}
+		}
 
-//		if (newIndex.isValid())
-//		{
-//			QItemSelectionModel::SelectionFlags command(selectionCommand(newIndex, event));
+		if (newIndex.isValid())
+		{
+			QItemSelectionModel::SelectionFlags command(selectionCommand(newIndex, event));
 
-//			if (command != QItemSelectionModel::NoUpdate || style()->styleHint(QStyle::SH_ItemView_MovementWithoutUpdatingSelection, 0, this))
-//			{
-//				if (event->key() == Qt::Key_Down)
-//				{
-//					scrollTo(getIndex(0, 0));
-//				}
+			if (command != QItemSelectionModel::NoUpdate || style()->styleHint(QStyle::SH_ItemView_MovementWithoutUpdatingSelection, 0, this))
+			{
+				if (event->key() == Qt::Key_Down)
+				{
+					scrollTo(getIndex(0, 0));
+				}
 
-//				selectionModel()->setCurrentIndex(newIndex, command);
-//			}
+				selectionModel()->setCurrentIndex(newIndex, command);
+			}
 
-//			event->accept();
+			event->accept();
 
-//			return;
-//		}
-//	}
+			return;
+		}
+	}
+	else if (m_keyboardNavigation && m_viewFlags.testFlag(ViewFlag::OneLevel))
+	{
+		if (event->key() == Qt::Key_Left)
+		{
+			const QModelIndex root(rootIndex());
 
-//	QTreeView::keyPressEvent(event);
-//}
+			displayFolder(root.parent());
+			setCurrentIndex(root);
+
+			event->accept();
+
+			return;
+		}
+		else if (event->key() == Qt::Key_Right)
+		{
+			if (currentIndex().flags().testFlag(Qt::ItemNeverHasChildren))
+			{
+				emit activated(currentIndex());
+			}
+			else
+			{
+				displayFolder(currentIndex());
+			}
+
+			event->accept();
+
+			return;
+		}
+	}
+
+	QTreeView::keyPressEvent(event);
+}
 
 void ItemViewWidget::dropEvent(QDropEvent *event)
 {
@@ -386,43 +415,6 @@ void ItemViewWidget::dropEvent(QDropEvent *event)
 	emit modified();
 
 	QTimer::singleShot(50, this, SLOT(updateDropSelection()));
-}
-
-void ItemViewWidget::keyPressEvent(QKeyEvent *event)
-{
-	if (m_keyboardNavigation)
-	{
-		if (event->key() == Qt::Key_Left && m_viewFlags.testFlag(ViewFlag::OneLevel))
-		{
-			const QModelIndex parent(rootIndex());
-
-			displayFolder(parent.parent());
-			setCurrentIndex(parent);
-
-			event->accept();
-
-			return;
-		}
-		else if (event->key() == Qt::Key_Right && m_viewFlags.testFlag(ViewFlag::OneLevel))
-		{
-			if (currentIndex().flags().testFlag(Qt::ItemNeverHasChildren))
-			{
-				emit activated(currentIndex());
-			}
-			else
-			{
-				displayFolder(currentIndex());
-
-			}
-			event->accept();
-
-			return;
-		}
-	}
-
-	event->ignore();
-
-	QTreeView::keyPressEvent(event);
 }
 
 void ItemViewWidget::startDrag(Qt::DropActions supportedActions)
@@ -479,7 +471,7 @@ void ItemViewWidget::moveRow(bool up)
 
 void ItemViewWidget::displayFolder(const QModelIndex &index)
 {
-	if (m_proxyModel)
+	if (m_proxyModel && index.model() == m_proxyModel->sourceModel())
 	{
 		setRootIndex(m_proxyModel->mapFromSource(index));
 	}
@@ -487,6 +479,7 @@ void ItemViewWidget::displayFolder(const QModelIndex &index)
 	{
 		setRootIndex(index);
 	}
+
 	setCurrentIndex(rootIndex().child(0, 0));
 }
 
@@ -759,6 +752,13 @@ void ItemViewWidget::setData(const QModelIndex &index, const QVariant &value, in
 	{
 		m_sourceModel->setData(index, value, role);
 	}
+}
+
+void ItemViewWidget::setRootIndex(const QModelIndex &index)
+{
+	QTreeView::setRootIndex(index);
+
+	updateBranch(index);
 }
 
 void ItemViewWidget::setModel(QAbstractItemModel *model)

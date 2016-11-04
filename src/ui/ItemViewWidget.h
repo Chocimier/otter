@@ -77,6 +77,7 @@ public:
 	explicit ItemViewWidget(QWidget *parent = nullptr);
 
 	void setData(const QModelIndex &index, const QVariant &value, int role);
+	void setRootIndex(const QModelIndex &index);
 	void setModel(QAbstractItemModel *model);
 	void setModel(QAbstractItemModel *model, bool useSortProxy);
 	void setViewFlags(Otter::ItemViewWidget::ViewFlags flags);
