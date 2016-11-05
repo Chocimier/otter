@@ -809,6 +809,8 @@ void ItemViewWidget::setModel(QAbstractItemModel *model, bool useSortProxy)
 	connect(selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)), this, SLOT(notifySelectionChanged()));
 	connect(model, SIGNAL(dataChanged(QModelIndex,QModelIndex)), this, SIGNAL(modified()));
 	connect(model, SIGNAL(dataChanged(QModelIndex,QModelIndex)), this, SLOT(updateBranch()));
+	connect(model, SIGNAL(rowsInserted(QModelIndex,int,int)), this, SLOT(updateBranch()));
+	connect(model, SIGNAL(rowsMoved(QModelIndex,int,int,QModelIndex,int)), this, SLOT(updateBranch()));
 }
 
 
