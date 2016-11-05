@@ -5,11 +5,11 @@ If you want to help with the development of Otter Browser, please observe the fo
 ## Reporting bugs and feature requests
 
 * Make sure that you have a [GitHub account](https://github.com/signup/free).
-* Check if the issue has already been reported (including closed tickets).
+* Check if the issue has already been reported [(including closed tickets)](https://github.com/OtterBrowser/otter-browser/search?q=your+issue&type=Issues).
 * Check list of [known upstream issues](https://github.com/OtterBrowser/otter-browser/wiki/Upstream-Bugs).
 * If possible, try to reproduce the issue with current snapshot from relevant branch of the source code repository.
 * Create a ticket for your issue.
-* Describe the issue clearly and succinctly.
+* Describe the issue clearly and succinctly. Make distinction between wanted and current-unwanted behavior.
 * In case of bug reports:
   * describe the steps required to reproduce issue,
   * attach a [backtrace](http://en.wikipedia.org/wiki/Stack_trace) if you have any,
@@ -17,11 +17,12 @@ If you want to help with the development of Otter Browser, please observe the fo
     * application version (for example, weekly 50 32 bit),
     * system version (for example, Ubuntu 14.04 64 bit),
     * Qt version (for example, Qt 5.4.0 MSVC 64 bit).
+    * web backend, mentioned in Menu > Help > About Otter… dialog (for example, WebKit (legacy) 538.1)
 
 ## Submitting patches
 
 * Make sure that you have a [GitHub account](https://github.com/signup/free).
-* Ensure that nobody is currently working on the selected task (check if someone is assigned to the ticket or ask on *#otter-browser* at freenode).
+* Ensure that nobody is currently working on the selected task (check if someone is assigned to the ticket; if there is nobody, ask on *#otter-browser* at freenode).
 * Fork the repository on GitHub.
 * Create a branch just for that task.
 * Submit your changes as a pull request so they can be reviewed.
