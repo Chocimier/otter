@@ -57,15 +57,31 @@ BookmarksContentsWidget::BookmarksContentsWidget(Window *window) : ContentsWidge
 
 	QAction *treeModeAction(new QAction(tr("Tree Mode"), this));
 	treeModeAction->setData(DualViewWidget::TreeViewType);
-	m_ui->modeMenuButton->addAction(treeModeAction);
 
 	QAction *listModeAction(new QAction(tr("List Mode"), this));
 	listModeAction->setData(DualViewWidget::OneFolderViewType);
-	m_ui->modeMenuButton->addAction(listModeAction);
 
 	QAction *dualModeAction(new QAction(tr("Dual Mode"), this));
 	dualModeAction->setData(DualViewWidget::SplitViewType);
-	m_ui->modeMenuButton->addAction(dualModeAction);
+
+	QActionGroup *viewModeGroup(new QActionGroup(this));
+	viewModeGroup->setExclusive(true);
+	viewModeGroup->addAction(treeModeAction);
+	viewModeGroup->addAction(listModeAction);
+	viewModeGroup->addAction(dualModeAction);
+
+	DualViewWidget::ViewType viewType = m_ui->bookmarksDualViewWidget->viewType();
+
+	for (int i = 0; i < viewModeGroup->actions().count(); ++i)
+	{
+		viewModeGroup->actions().at(i)->setCheckable(true);
+		m_ui->modeMenuButton->addAction(viewModeGroup->actions().at(i));
+
+		if (viewType == static_cast<DualViewWidget::ViewType>(viewModeGroup->actions().at(i)->data().toInt()))
+		{
+			viewModeGroup->actions().at(i)->setChecked(true);
+		}
+	}
 
 	connect(m_ui->modeMenuButton, SIGNAL(triggered(QAction*)), this, SLOT(setViewMode(QAction*)));
 

@@ -31,6 +31,8 @@ namespace Otter {
 class DualViewWidget : public QWidget
 {
 	Q_OBJECT
+	Q_ENUMS(ViewType)
+
 public:
 	enum ViewType {
 		TreeViewType,
@@ -42,8 +44,8 @@ public:
 
 	QModelIndex currentIndex() const;
 	QItemSelectionModel* selectionModel() const;
+	ViewType viewType();
 	bool eventFilter(QObject *object, QEvent *event);
-
 
 public slots:
 	void setDragDropMode(QAbstractItemView::DragDropMode behavior);
@@ -58,6 +60,7 @@ protected slots:
 	void showContextMenu(const QPoint &point);
 	void treeIndexChanged();
 	void updateWidgets();
+	void loadState();
 	void widgetFocused(QWidget *oldWidget, QWidget *newWidget);
 
 private:

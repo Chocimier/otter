@@ -19,8 +19,10 @@
 **************************************************************************/
 
 #include "../core/Application.h"
+#include "../core/Settings.h"
 #include "DualViewWidget.h"
 
+#include <QtCore/QMetaEnum>
 #include <QtWidgets/QBoxLayout>
 #include <QtWidgets/QDesktopWidget>
 #include <QtWidgets/QToolTip>
@@ -35,9 +37,9 @@ DualViewWidget::DualViewWidget(QWidget *parent) : QWidget(parent),
 	m_dragDropMode(QAbstractItemView::NoDragDrop)
 {
 	setLayout(new QBoxLayout(QBoxLayout::LeftToRight, this));
-	setViewType(m_type);
 
 	connect(Application::getInstance(), SIGNAL(focusChanged(QWidget*,QWidget*)), this, SLOT(widgetFocused(QWidget*,QWidget*)));
+	connect(this, SIGNAL(objectNameChanged(QString)), this, SLOT(loadState()));
 	connect(this, SIGNAL(objectNameChanged(QString)), this, SLOT(updateWidgets()));
 }
 
@@ -96,12 +98,16 @@ void DualViewWidget::setViewType(DualViewWidget::ViewType type)
 
 	if (m_treeView)
 	{
+		layout()->removeWidget(m_treeView);
+
 		m_treeView->deleteLater();
 		m_treeView = nullptr;
 	}
 
 	if (m_listView)
 	{
+		layout()->removeWidget(m_listView);
+
 		m_listView->deleteLater();
 		m_listView = nullptr;
 	}
@@ -169,6 +175,20 @@ void DualViewWidget::setViewType(DualViewWidget::ViewType type)
 		connect(m_listView, SIGNAL(activated(QModelIndex)), this, SLOT(requestItemActivate(QModelIndex)));
 	}
 
+	const QString suffix(QLatin1String("DualViewWidget"));
+	const QString type(objectName().endsWith(suffix) ? objectName().left(objectName().size() - suffix.size()) : objectName());
+
+	if (!type.isEmpty())
+	{
+		Settings settings(SessionsManager::getWritableDataPath(QLatin1String("views.ini")));
+		settings.beginGroup(type);
+
+		const QMetaEnum viewTypeEnum(metaObject()->enumerator(metaObject()->indexOfEnumerator(QLatin1String("ViewType").data())));
+
+		settings.setValue(QLatin1String("viewType"), viewTypeEnum.valueToKey(m_type));
+		settings.save();
+	}
+
 	updateWidgets();
 }
 
@@ -217,6 +237,29 @@ void DualViewWidget::updateWidgets()
 	}
 }
 
+void DualViewWidget::loadState()
+{
+	const QString suffix(QLatin1String("DualViewWidget"));
+	const QString type(objectName().endsWith(suffix) ? objectName().left(objectName().size() - suffix.size()) : objectName());
+
+	if (type.isEmpty())
+	{
+		return;
+	}
+
+	Settings settings(SessionsManager::getReadableDataPath(QLatin1String("views.ini")));
+	settings.beginGroup(type);
+
+	const QString viewTypeName(settings.getValue(QLatin1String("viewType")).toString());
+
+	if (!viewTypeName.isEmpty())
+	{
+		const QMetaEnum viewTypeEnum(metaObject()->enumerator(metaObject()->indexOfEnumerator(QLatin1String("ViewType").data())));
+
+		setViewType(static_cast<ViewType>(viewTypeEnum.keyToValue(viewTypeName.toLatin1().data())));
+	}
+}
+
 void DualViewWidget::widgetFocused(QWidget *oldWidget, QWidget *newWidget)
 {
 	Q_UNUSED(oldWidget)
@@ -239,6 +282,11 @@ QModelIndex DualViewWidget::currentIndex() const
 QItemSelectionModel* DualViewWidget::selectionModel() const
 {
 	return (m_currentView ? m_currentView->selectionModel() : nullptr);
+}
+
+DualViewWidget::ViewType DualViewWidget::viewType()
+{
+	return m_type;
 }
 
 bool DualViewWidget::eventFilter(QObject *object, QEvent *event)
