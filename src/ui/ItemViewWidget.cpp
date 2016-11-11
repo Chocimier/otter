@@ -196,7 +196,7 @@ ItemViewWidget::ItemViewWidget(QWidget *parent) : QTreeView(parent),
 	m_headerWidget(new HeaderViewWidget(Qt::Horizontal, this)),
 	m_sourceModel(nullptr),
 	m_proxyModel(nullptr),
-	m_viewFlags(ViewFlag::None),
+	m_viewFlags(NoFlags),
 	m_viewMode(ListViewMode),
 	m_sortOrder(Qt::AscendingOrder),
 	m_sortColumn(-1),
@@ -345,7 +345,7 @@ void ItemViewWidget::keyPressEvent(QKeyEvent *event)
 			return;
 		}
 	}
-	else if (m_keyboardNavigation && m_viewFlags.testFlag(ViewFlag::OneLevel))
+	else if (m_keyboardNavigation && m_viewFlags.testFlag(ViewFlag::OneLevelFlag))
 	{
 		if (event->key() == Qt::Key_Left)
 		{
@@ -825,7 +825,7 @@ void ItemViewWidget::setViewFlags(ItemViewWidget::ViewFlags flags)
 {
 	m_viewFlags = flags;
 
-	setExpandsOnDoubleClick(!flags.testFlag(ViewFlag::OneLevel));
+	setExpandsOnDoubleClick(!flags.testFlag(OneLevelFlag));
 	updateBranch();
 }
 
@@ -893,16 +893,12 @@ int ItemViewWidget::getCurrentRow() const
 
 int ItemViewWidget::getRowCount(const QModelIndex &parent) const
 {
-	Q_UNUSED(parent)
-
-	return (model() ? model()->rowCount() : 0);
+	return (model() ? model()->rowCount(parent) : 0);
 }
 
 int ItemViewWidget::getColumnCount(const QModelIndex &parent) const
 {
-	Q_UNUSED(parent)
-
-	return (model() ? model()->columnCount() : 0);
+	return (model() ? model()->columnCount(parent) : 0);
 }
 
 bool ItemViewWidget::canMoveUp() const
@@ -989,7 +985,7 @@ void ItemViewWidget::updateBranch(QModelIndex index)
 		index = model()->index(0,0);
 	}
 
-	bool hideLeaves(m_viewFlags.testFlag(ViewFlag::OnlyFolders));
+	bool hideLeaves(m_viewFlags.testFlag(OnlyFoldersFlag));
 
 	for (int i = 0; index.child(i, 0).isValid(); ++i)
 	{

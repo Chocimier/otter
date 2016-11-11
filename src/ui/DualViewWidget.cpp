@@ -27,7 +27,8 @@
 #include <QtWidgets/QDesktopWidget>
 #include <QtWidgets/QToolTip>
 
-namespace Otter {
+namespace Otter
+{
 
 DualViewWidget::DualViewWidget(QWidget *parent) : QWidget(parent),
 	m_treeView(nullptr),
@@ -36,7 +37,7 @@ DualViewWidget::DualViewWidget(QWidget *parent) : QWidget(parent),
 	m_type(SplitViewType),
 	m_dragDropMode(QAbstractItemView::NoDragDrop)
 {
-	setLayout(new QBoxLayout(QBoxLayout::LeftToRight, this));
+	setLayout(new QBoxLayout((QGuiApplication::isLeftToRight() ? QBoxLayout::LeftToRight : QBoxLayout::RightToLeft), this));
 
 	connect(Application::getInstance(), SIGNAL(focusChanged(QWidget*,QWidget*)), this, SLOT(widgetFocused(QWidget*,QWidget*)));
 	connect(this, SIGNAL(objectNameChanged(QString)), this, SLOT(loadState()));
@@ -74,7 +75,7 @@ void DualViewWidget::setFilterString(const QString string)
 		if (m_type == SplitViewType)
 		{
 			m_treeView->setViewMode(ItemViewWidget::TreeViewMode);
-			m_treeView->setViewFlags(ItemViewWidget::ViewFlag::OnlyFolders);
+			m_treeView->setViewFlags(ItemViewWidget::OnlyFoldersFlag);
 		}
 	}
 
@@ -122,11 +123,11 @@ void DualViewWidget::setViewType(DualViewWidget::ViewType type)
 		case SplitViewType:
 			m_treeView = new ItemViewWidget(this);
 			m_treeView->setViewMode(ItemViewWidget::TreeViewMode);
-			m_treeView->setViewFlags(ItemViewWidget::ViewFlag::OnlyFolders);
+			m_treeView->setViewFlags(ItemViewWidget::OnlyFoldersFlag);
 
 			m_listView = new ItemViewWidget(this);
 			m_listView->setViewMode(ItemViewWidget::ListViewMode);
-			m_listView->setViewFlags(ItemViewWidget::ViewFlag::OneLevel);
+			m_listView->setViewFlags(ItemViewWidget::OneLevelFlag);
 
 			connect(m_treeView, SIGNAL(needsActionsUpdate()), this, SLOT(treeIndexChanged()));
 
@@ -134,7 +135,7 @@ void DualViewWidget::setViewType(DualViewWidget::ViewType type)
 		case OneFolderViewType:
 			m_listView = new ItemViewWidget(this);
 			m_listView->setViewMode(ItemViewWidget::ListViewMode);
-			m_listView->setViewFlags(ItemViewWidget::ViewFlag::OneLevel);
+			m_listView->setViewFlags(ItemViewWidget::OneLevelFlag);
 
 			break;
 	}
@@ -190,6 +191,19 @@ void DualViewWidget::setViewType(DualViewWidget::ViewType type)
 	}
 
 	updateWidgets();
+}
+
+void DualViewWidget::changeEvent(QEvent *event)
+{
+	if (event->type() == QEvent::LayoutDirectionChange)
+	{
+		QBoxLayout *boxLayout = dynamic_cast<QBoxLayout*>(layout());
+
+		if (boxLayout)
+		{
+			boxLayout->setDirection(QGuiApplication::isLeftToRight() ? QBoxLayout::LeftToRight : QBoxLayout::RightToLeft);
+		}
+	}
 }
 
 void DualViewWidget::showContextMenu(const QPoint &point)

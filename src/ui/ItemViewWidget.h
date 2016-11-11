@@ -66,10 +66,10 @@ public:
 		TreeViewMode = 1,
 	};
 
-	enum class ViewFlag : unsigned char {
-		None = 0,
-		OneLevel = 1,
-		OnlyFolders = 2
+	enum ViewFlag {
+		NoFlags = 0,
+		OneLevelFlag = 1,
+		OnlyFoldersFlag = 2
 	};
 
 	Q_DECLARE_FLAGS(ViewFlags, ViewFlag)
@@ -80,8 +80,8 @@ public:
 	void setRootIndex(const QModelIndex &index);
 	void setModel(QAbstractItemModel *model);
 	void setModel(QAbstractItemModel *model, bool useSortProxy);
-	void setViewFlags(Otter::ItemViewWidget::ViewFlags flags);
-	void setViewMode(Otter::ItemViewWidget::ViewMode mode);
+	void setViewFlags(ViewFlags flags);
+	void setViewMode(ViewMode mode);
 	void setKeyboardNavigation(bool keyboardNavigation);
 	QStandardItemModel* getSourceModel();
 	QSortFilterProxyModel* getProxyModel();
@@ -98,7 +98,6 @@ public:
 	bool canMoveUp() const;
 	bool canMoveDown() const;
 	bool isModified() const;
-
 
 public slots:
 	void displayFolder(const QModelIndex &index);

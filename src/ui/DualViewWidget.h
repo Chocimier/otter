@@ -26,7 +26,8 @@
 #include <QtCore/QAbstractItemModel>
 #include <QtWidgets/QWidget>
 
-namespace Otter {
+namespace Otter
+{
 
 class DualViewWidget : public QWidget
 {
@@ -34,8 +35,9 @@ class DualViewWidget : public QWidget
 	Q_ENUMS(ViewType)
 
 public:
-	enum ViewType {
-		TreeViewType,
+	enum ViewType
+	{
+		TreeViewType = 0,
 		SplitViewType,
 		OneFolderViewType
 	};
@@ -54,6 +56,9 @@ public slots:
 	void setFilterString(const QString string);
 	void setModel(QAbstractItemModel *model);
 	void setViewType(ViewType type);
+
+protected:
+	void changeEvent(QEvent *event);
 
 protected slots:
 	void requestItemActivate(const QModelIndex &index);

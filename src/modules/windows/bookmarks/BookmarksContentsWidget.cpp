@@ -70,7 +70,7 @@ BookmarksContentsWidget::BookmarksContentsWidget(Window *window) : ContentsWidge
 	viewModeGroup->addAction(listModeAction);
 	viewModeGroup->addAction(dualModeAction);
 
-	DualViewWidget::ViewType viewType = m_ui->bookmarksDualViewWidget->viewType();
+	DualViewWidget::ViewType viewType(m_ui->bookmarksDualViewWidget->viewType());
 
 	for (int i = 0; i < viewModeGroup->actions().count(); ++i)
 	{
