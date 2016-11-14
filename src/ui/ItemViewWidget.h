@@ -63,10 +63,11 @@ public:
 	enum ViewMode
 	{
 		ListViewMode = 0,
-		TreeViewMode = 1,
+		TreeViewMode = 1
 	};
 
-	enum ViewFlag {
+	enum ViewFlag
+	{
 		NoFlags = 0,
 		OneLevelFlag = 1,
 		OnlyFoldersFlag = 2
@@ -82,7 +83,6 @@ public:
 	void setModel(QAbstractItemModel *model, bool useSortProxy);
 	void setViewFlags(ViewFlags flags);
 	void setViewMode(ViewMode mode);
-	void setKeyboardNavigation(bool keyboardNavigation);
 	QStandardItemModel* getSourceModel();
 	QSortFilterProxyModel* getProxyModel();
 	QStandardItem* getItem(const QModelIndex &index) const;
@@ -113,8 +113,8 @@ public slots:
 
 protected:
 	void showEvent(QShowEvent *event);
-	void dropEvent(QDropEvent *event);
 	void keyPressEvent(QKeyEvent *event);
+	void dropEvent(QDropEvent *event);
 	void startDrag(Qt::DropActions supportedActions);
 	void moveRow(bool up);
 	bool applyFilter(const QModelIndex &index);
@@ -142,7 +142,6 @@ private:
 	int m_sortColumn;
 	int m_dragRow;
 	int m_dropRow;
-	bool m_keyboardNavigation;
 	bool m_canGatherExpanded;
 	bool m_isModified;
 	bool m_isInitialized;

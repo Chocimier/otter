@@ -44,6 +44,19 @@ DualViewWidget::DualViewWidget(QWidget *parent) : QWidget(parent),
 	connect(this, SIGNAL(objectNameChanged(QString)), this, SLOT(updateWidgets()));
 }
 
+void DualViewWidget::changeEvent(QEvent *event)
+{
+	if (event->type() == QEvent::LayoutDirectionChange)
+	{
+		QBoxLayout *boxLayout = dynamic_cast<QBoxLayout*>(layout());
+
+		if (boxLayout)
+		{
+			boxLayout->setDirection(QGuiApplication::isLeftToRight() ? QBoxLayout::LeftToRight : QBoxLayout::RightToLeft);
+		}
+	}
+}
+
 void DualViewWidget::setDragDropMode(QAbstractItemView::DragDropMode mode)
 {
 	m_dragDropMode = mode;
@@ -163,7 +176,6 @@ void DualViewWidget::setViewType(DualViewWidget::ViewType type)
 	{
 		m_listView->installEventFilter(this);
 		m_listView->setContextMenuPolicy(Qt::CustomContextMenu);
-		m_listView->setKeyboardNavigation(true);
 		m_listView->viewport()->installEventFilter(this);
 		m_listView->viewport()->setMouseTracking(true);
 
@@ -191,19 +203,6 @@ void DualViewWidget::setViewType(DualViewWidget::ViewType type)
 	}
 
 	updateWidgets();
-}
-
-void DualViewWidget::changeEvent(QEvent *event)
-{
-	if (event->type() == QEvent::LayoutDirectionChange)
-	{
-		QBoxLayout *boxLayout = dynamic_cast<QBoxLayout*>(layout());
-
-		if (boxLayout)
-		{
-			boxLayout->setDirection(QGuiApplication::isLeftToRight() ? QBoxLayout::LeftToRight : QBoxLayout::RightToLeft);
-		}
-	}
 }
 
 void DualViewWidget::showContextMenu(const QPoint &point)

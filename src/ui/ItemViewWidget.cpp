@@ -202,7 +202,6 @@ ItemViewWidget::ItemViewWidget(QWidget *parent) : QTreeView(parent),
 	m_sortColumn(-1),
 	m_dragRow(-1),
 	m_dropRow(-1),
-	m_keyboardNavigation(false),
 	m_canGatherExpanded(false),
 	m_isModified(false),
 	m_isInitialized(false)
@@ -345,7 +344,7 @@ void ItemViewWidget::keyPressEvent(QKeyEvent *event)
 			return;
 		}
 	}
-	else if (m_keyboardNavigation && m_viewFlags.testFlag(ViewFlag::OneLevelFlag))
+	else if (m_viewFlags.testFlag(ViewFlag::OneLevelFlag))
 	{
 		if (event->key() == Qt::Key_Left)
 		{
@@ -827,11 +826,6 @@ void ItemViewWidget::setViewFlags(ItemViewWidget::ViewFlags flags)
 
 	setExpandsOnDoubleClick(!flags.testFlag(OneLevelFlag));
 	updateBranch();
-}
-
-void ItemViewWidget::setKeyboardNavigation(bool keyboardNavigation)
-{
-	m_keyboardNavigation = keyboardNavigation;
 }
 
 QStandardItemModel* ItemViewWidget::getSourceModel()
