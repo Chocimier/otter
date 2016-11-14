@@ -813,7 +813,6 @@ void ItemViewWidget::setModel(QAbstractItemModel *model, bool useSortProxy)
 	connect(model, SIGNAL(rowsMoved(QModelIndex,int,int,QModelIndex,int)), this, SLOT(updateBranch()));
 }
 
-
 void ItemViewWidget::setViewMode(ItemViewWidget::ViewMode mode)
 {
 	m_viewMode = mode;
@@ -821,6 +820,7 @@ void ItemViewWidget::setViewMode(ItemViewWidget::ViewMode mode)
 	setIndentation(mode == TreeViewMode ? m_treeIndentation : 0);
 	updateBranch();
 }
+
 void ItemViewWidget::setViewFlags(ItemViewWidget::ViewFlags flags)
 {
 	m_viewFlags = flags;

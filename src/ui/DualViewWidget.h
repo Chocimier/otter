@@ -44,7 +44,7 @@ public:
 
 	explicit DualViewWidget(QWidget *parent = 0);
 
-	QModelIndex currentIndex() const;
+	QModelIndex getCurrentIndex() const;
 	QItemSelectionModel* selectionModel() const;
 	ViewType viewType();
 	bool eventFilter(QObject *object, QEvent *event);

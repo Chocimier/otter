@@ -288,7 +288,7 @@ void DualViewWidget::widgetFocused(QWidget *oldWidget, QWidget *newWidget)
 	emit needsActionsUpdate();
 }
 
-QModelIndex DualViewWidget::currentIndex() const
+QModelIndex DualViewWidget::getCurrentIndex() const
 {
 	return (m_currentView ? m_currentView->currentIndex() : QModelIndex());
 }

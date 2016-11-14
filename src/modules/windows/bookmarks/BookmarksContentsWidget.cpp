@@ -117,7 +117,7 @@ void BookmarksContentsWidget::changeEvent(QEvent *event)
 
 void BookmarksContentsWidget::addBookmark()
 {
-	const QModelIndex index(m_ui->bookmarksDualViewWidget->currentIndex());
+	const QModelIndex index(m_ui->bookmarksDualViewWidget->getCurrentIndex());
 	BookmarksItem *folder(findFolder(index));
 	BookmarkPropertiesDialog dialog(QUrl(), QString(), QString(), folder, ((folder && folder->index() == index) ? -1 : (index.row() + 1)), true, this);
 	dialog.exec();
@@ -125,7 +125,7 @@ void BookmarksContentsWidget::addBookmark()
 
 void BookmarksContentsWidget::addFolder()
 {
-	const QModelIndex index(m_ui->bookmarksDualViewWidget->currentIndex());
+	const QModelIndex index(m_ui->bookmarksDualViewWidget->getCurrentIndex());
 	BookmarksItem *folder(findFolder(index));
 	BookmarkPropertiesDialog dialog(QUrl(), QString(), QString(), folder, ((folder && folder->index() == index) ? -1 : (index.row() + 1)), false, this);
 	dialog.exec();
@@ -133,7 +133,7 @@ void BookmarksContentsWidget::addFolder()
 
 void BookmarksContentsWidget::addSeparator()
 {
-	const QModelIndex index(m_ui->bookmarksDualViewWidget->currentIndex());
+	const QModelIndex index(m_ui->bookmarksDualViewWidget->getCurrentIndex());
 	BookmarksItem *folder(findFolder(index));
 
 	BookmarksManager::addBookmark(BookmarksModel::SeparatorBookmark, QUrl(), QString(), folder, ((folder && folder->index() == index) ? -1 : (index.row() + 1)));
@@ -141,17 +141,17 @@ void BookmarksContentsWidget::addSeparator()
 
 void BookmarksContentsWidget::removeBookmark()
 {
-	BookmarksManager::getModel()->trashBookmark(BookmarksManager::getModel()->getBookmark(m_ui->bookmarksDualViewWidget->currentIndex()));
+	BookmarksManager::getModel()->trashBookmark(BookmarksManager::getModel()->getBookmark(m_ui->bookmarksDualViewWidget->getCurrentIndex()));
 }
 
 void BookmarksContentsWidget::restoreBookmark()
 {
-	BookmarksManager::getModel()->restoreBookmark(BookmarksManager::getModel()->getBookmark(m_ui->bookmarksDualViewWidget->currentIndex()));
+	BookmarksManager::getModel()->restoreBookmark(BookmarksManager::getModel()->getBookmark(m_ui->bookmarksDualViewWidget->getCurrentIndex()));
 }
 
 void BookmarksContentsWidget::openBookmark(const QModelIndex &index)
 {
-	BookmarksItem *bookmark(BookmarksManager::getModel()->getBookmark(index.isValid() ? index : m_ui->bookmarksDualViewWidget->currentIndex()));
+	BookmarksItem *bookmark(BookmarksManager::getModel()->getBookmark(index.isValid() ? index : m_ui->bookmarksDualViewWidget->getCurrentIndex()));
 	WindowsManager *manager(SessionsManager::getWindowsManager());
 
 	if (bookmark && manager)
@@ -183,7 +183,7 @@ void BookmarksContentsWidget::openBookmark(const QModelIndex &index, QEvent *eve
 
 void BookmarksContentsWidget::bookmarkProperties()
 {
-	BookmarksItem *bookmark(BookmarksManager::getModel()->getBookmark(m_ui->bookmarksDualViewWidget->currentIndex()));
+	BookmarksItem *bookmark(BookmarksManager::getModel()->getBookmark(m_ui->bookmarksDualViewWidget->getCurrentIndex()));
 
 	if (bookmark)
 	{
@@ -289,9 +289,9 @@ void BookmarksContentsWidget::triggerAction(int identifier, const QVariantMap &p
 
 			break;
 		case ActionsManager::CopyLinkToClipboardAction:
-			if (static_cast<BookmarksModel::BookmarkType>(m_ui->bookmarksDualViewWidget->currentIndex().data(BookmarksModel::TypeRole).toInt()) == BookmarksModel::UrlBookmark)
+			if (static_cast<BookmarksModel::BookmarkType>(m_ui->bookmarksDualViewWidget->getCurrentIndex().data(BookmarksModel::TypeRole).toInt()) == BookmarksModel::UrlBookmark)
 			{
-				QGuiApplication::clipboard()->setText(m_ui->bookmarksDualViewWidget->currentIndex().data(BookmarksModel::UrlRole).toString());
+				QGuiApplication::clipboard()->setText(m_ui->bookmarksDualViewWidget->getCurrentIndex().data(BookmarksModel::UrlRole).toString());
 			}
 
 			break;
@@ -317,7 +317,7 @@ void BookmarksContentsWidget::triggerAction(int identifier, const QVariantMap &p
 
 						if (window && !Utils::isUrlEmpty(window->getUrl()))
 						{
-							BookmarksManager::addBookmark(BookmarksModel::UrlBookmark, window->getUrl(), window->getTitle(), findFolder(m_ui->bookmarksDualViewWidget->currentIndex()));
+							BookmarksManager::addBookmark(BookmarksModel::UrlBookmark, window->getUrl(), window->getTitle(), findFolder(m_ui->bookmarksDualViewWidget->getCurrentIndex()));
 						}
 					}
 				}
