@@ -74,7 +74,6 @@
 		}
 
 		score += calculateScoreForValuesOncePerToken([links[i].innerText, links[i].getAttribute('aria-label'), links[i].getAttribute('alt'), links[i].title].filter(function(x){return x;}).map(function(x){return x.toUpperCase();}), textTokens, TEXT_SCORE);
-
 		score += calculateScore(links[i].id.toUpperCase(), idTokens, ID_SCORE);
 		score += calculateScoreForValues(links[i].classList, classTokens, CLASS_SCORE);
 
