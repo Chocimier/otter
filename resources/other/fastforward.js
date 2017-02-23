@@ -7,6 +7,7 @@
 	const HREF_SCORE = 1;
 	const THRESHOLD = 10;
 
+	/** value must be uppercase **/
 	function calculateScore(value, tokens, defaultScore)
 	{
 		var score = 0;
@@ -40,6 +41,26 @@
 		return score;
 	}
 
+	/** values must be uppercase **/
+	function calculateScoreForValuesOncePerToken(values, tokens, defaultScore)
+	{
+		var score = 0;
+
+		for (var i = (tokens.length - 1); i >= 0; --i)
+		{
+			for (var j = (values.length - 1); j >= 0; --j)
+			{
+				if (values[j].indexOf(tokens[i].value) > -1)
+				{
+					score += (tokens[i].score || defaultScore);
+					break;
+				}
+			}
+		}
+
+		return score;
+	}
+
 	var links = document.querySelectorAll('a:not([href^="javascript:"]):not([href="#"])');
 	var scoredLinks = [];
 
@@ -52,7 +73,8 @@
 			score += REL_SCORE;
 		}
 
-		score += calculateScore([links[i].innerText, links[i].getAttribute('aria-label'), links[i].getAttribute('alt'), links[i].title].join(' ').toUpperCase(), textTokens, TEXT_SCORE);
+		score += calculateScoreForValuesOncePerToken([links[i].innerText, links[i].getAttribute('aria-label'), links[i].getAttribute('alt'), links[i].title].filter(function(x){return x;}).map(function(x){return x.toUpperCase();}), textTokens, TEXT_SCORE);
+
 		score += calculateScore(links[i].id.toUpperCase(), idTokens, ID_SCORE);
 		score += calculateScoreForValues(links[i].classList, classTokens, CLASS_SCORE);
 
